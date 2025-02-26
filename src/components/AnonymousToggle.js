@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserX } from 'lucide-react';
+// Removed unused UserX import
 
 const AnonymousToggle = ({ enabled, onChange }) => {
   return (
