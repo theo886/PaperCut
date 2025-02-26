@@ -1,6 +1,24 @@
 const { getContainer } = require('../shared/cosmosClient');
 const { v4: uuidv4 } = require('uuid');
 
+// Helper function to format display names from emails
+function formatDisplayName(email) {
+    if (!email) return '';
+    
+    // Check if it's already a name (not an email)
+    if (!email.includes('@')) {
+        return email;
+    }
+    
+    // Extract name part from email
+    const namePart = email.split('@')[0];
+    
+    // Replace dots, underscores, or hyphens with spaces and capitalize each word
+    return namePart
+        .replace(/[._-]/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+}
+
 module.exports = async function (context, req) {
     try {
         // Get the current user information from the request
@@ -40,8 +58,8 @@ module.exports = async function (context, req) {
             id: uuidv4(),
             title,
             description,
-            author: isAnonymous ? "Anonymous" : userData.userDetails,
-            authorInitial: isAnonymous ? "?" : userData.userDetails.charAt(0).toUpperCase(),
+            author: isAnonymous ? "Anonymous" : formatDisplayName(userData.userDetails),
+            authorInitial: isAnonymous ? "?" : formatDisplayName(userData.userDetails).charAt(0).toUpperCase(),
             authorId: isAnonymous ? null : userData.userId,
             isAnonymous,
             status: 'New',

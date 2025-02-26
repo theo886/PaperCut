@@ -72,11 +72,14 @@ function AppContent() {
   }
 
   // User info - now coming from authenticated user
-  const formattedName = formatUserName(user.userDetails);
+  // Use displayName from authService or fall back to formatting userDetails
+  const displayName = user.displayName || formatUserName(user.userDetails);
+  console.log("Using display name:", displayName, "from user:", user);
+  
   const userInfo = {
     id: user.userId,
-    name: formattedName,
-    initial: formattedName ? formattedName.charAt(0).toUpperCase() : 'U',
+    name: displayName,
+    initial: displayName ? displayName.charAt(0).toUpperCase() : 'U',
     isAdmin: user.roles?.includes('admin') || user.roles?.includes('administrator') || user.roles?.includes('Owner') || false
   };
 
