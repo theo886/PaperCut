@@ -32,13 +32,31 @@ export const formatUserName = (userEmail) => {
     return userEmail;
   }
   
-  // Try to extract name from email
-  // Format is typically firstname.lastname@domain.com
+  // Extract name from email address
+  // Format could be firstname.lastname@domain.com or username@domain.com
   const namePart = userEmail.split('@')[0];
   
-  // Replace dots with spaces and capitalize
-  return namePart
-    .split('.')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+  // Check for common email delimiters
+  if (namePart.includes('.')) {
+    // Handle firstname.lastname format
+    return namePart
+      .split('.')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  } else if (namePart.includes('_')) {
+    // Handle firstname_lastname format
+    return namePart
+      .split('_')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  } else if (namePart.includes('-')) {
+    // Handle firstname-lastname format
+    return namePart
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+  
+  // If no recognized delimiter, just capitalize the first letter
+  return namePart.charAt(0).toUpperCase() + namePart.slice(1);
 };
