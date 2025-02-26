@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Header from './components/Header';
 import SuggestionCard from './components/SuggestionCard';
 import SuggestionDetail from './components/SuggestionDetail';
 import SuggestionForm from './components/SuggestionForm';
 import { initialSuggestions } from './data';
 import { ChevronUp, Clock } from 'lucide-react';
+import { AuthProvider, AuthContext } from './contexts/AuthContext';
+import Login from './components/Login';
 
-function App() {
+// Main App component with authentication
+function AppContent() {
   const [view, setView] = useState('list'); // 'list', 'detail', 'create'
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
   const [suggestions, setSuggestions] = useState(initialSuggestions);
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'votes'
+  
+  const { user, loading } = useContext(AuthContext);
   
   // Local storage for persistence
   useEffect(() => {
@@ -25,12 +30,29 @@ function App() {
     localStorage.setItem('suggestions', JSON.stringify(suggestions));
   }, [suggestions]);
 
-  // Default user info - in a real app this would come from authentication
-  const user = {
-    id: 1,
-    name: 'Anonymous User',
-    initial: 'U',
-    isAdmin: true // All users are admins in this simplified version
+  // If still loading authentication, show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show login screen
+  if (!user) {
+    return <Login />;
+  }
+
+  // User info - now coming from authenticated user
+  const userInfo = {
+    id: user.userId,
+    name: user.userDetails,
+    initial: user.userDetails ? user.userDetails.charAt(0).toUpperCase() : 'U',
+    isAdmin: user.roles?.includes('admin') || false
   };
 
   // Navigate to suggestion detail view
@@ -56,9 +78,9 @@ function App() {
       if (s.id === id) {
         const newComment = {
           id: s.comments.length + 1,
-          author: isAnonymous ? "Anonymous" : user.name,
-          authorInitial: isAnonymous ? "?" : user.initial,
-          authorId: isAnonymous ? null : user.id,
+          author: isAnonymous ? "Anonymous" : userInfo.name,
+          authorInitial: isAnonymous ? "?" : userInfo.initial,
+          authorId: isAnonymous ? null : userInfo.id,
           isAnonymous: isAnonymous,
           text,
           timestamp: 'just now',
@@ -88,8 +110,8 @@ function App() {
           from: s.status,
           to: status,
           timestamp: 'just now',
-          author: user.name,
-          authorInitial: user.initial
+          author: userInfo.name,
+          authorInitial: userInfo.initial
         };
         return { 
           ...s, 
@@ -122,9 +144,9 @@ function App() {
       id: Date.now(), // Use timestamp as ID
       title,
       description,
-      author: isAnonymous ? "Anonymous" : user.name,
-      authorInitial: isAnonymous ? "?" : user.initial,
-      authorId: isAnonymous ? null : user.id,
+      author: isAnonymous ? "Anonymous" : userInfo.name,
+      authorInitial: isAnonymous ? "?" : userInfo.initial,
+      authorId: isAnonymous ? null : userInfo.id,
       isAnonymous: isAnonymous,
       status: 'New',
       departments: [],
@@ -166,11 +188,12 @@ function App() {
             anonymousMode={anonymousMode}
             toggleAnonymousMode={toggleAnonymousMode}
             setView={setView}
+            user={userInfo}
           />
           {selectedSuggestion && (
             <SuggestionDetail 
               suggestion={selectedSuggestion}
-              isAdmin={user.isAdmin}
+              isAdmin={userInfo.isAdmin}
               anonymousMode={anonymousMode}
               onBack={() => setView('list')}
               onAddComment={(text, isAnonymous) => addComment(selectedSuggestion.id, text, isAnonymous)}
@@ -187,6 +210,7 @@ function App() {
             anonymousMode={anonymousMode}
             toggleAnonymousMode={toggleAnonymousMode}
             setView={setView}
+            user={userInfo}
           />
           <SuggestionForm 
             onSubmit={createSuggestion}
@@ -202,6 +226,7 @@ function App() {
             anonymousMode={anonymousMode}
             toggleAnonymousMode={toggleAnonymousMode}
             setView={setView}
+            user={userInfo}
           />
           <div className="max-w-4xl mx-auto p-4">
             <div className="flex justify-between items-center mb-6">
@@ -258,6 +283,15 @@ function App() {
         </div>
       );
   }
+}
+
+// Wrap the app with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App;
