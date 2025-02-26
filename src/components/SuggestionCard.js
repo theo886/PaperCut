@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronUp } from 'lucide-react';
+import { formatDate } from '../utils/formatters';
 
 const SuggestionCard = ({ suggestion, onClick, onVote }) => {
   return (
@@ -10,7 +11,7 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
             className="font-medium text-lg cursor-pointer hover:text-indigo-600" 
             onClick={onClick}
           >
-            {suggestion.title} <span className="text-gray-400 text-sm">#{suggestion.id}</span>
+            {suggestion.title}
           </h3>
           <div className="flex items-center space-x-1">
             <button 
@@ -61,10 +62,10 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
           ))}
           
           <div className="flex items-center text-gray-500 text-xs ml-auto">
-            <div className={`h-6 w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
+            <div className={`h-6 w-6 min-w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
               {suggestion.authorInitial}
             </div>
-            <span>{suggestion.timestamp}</span>
+            <span>{formatDate(suggestion.timestamp)}</span>
           </div>
         </div>
       </div>

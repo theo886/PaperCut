@@ -8,6 +8,7 @@ import { ChevronUp, Clock } from 'lucide-react';
 import { AuthProvider, AuthContext } from './contexts/AuthContext';
 import Login from './components/Login';
 import apiService from './services/apiService';
+import { formatUserName } from './utils/formatters';
 
 // Main App component with authentication
 function AppContent() {
@@ -68,10 +69,11 @@ function AppContent() {
   }
 
   // User info - now coming from authenticated user
+  const formattedName = formatUserName(user.userDetails);
   const userInfo = {
     id: user.userId,
-    name: user.userDetails,
-    initial: user.userDetails ? user.userDetails.charAt(0).toUpperCase() : 'U',
+    name: formattedName,
+    initial: formattedName ? formattedName.charAt(0).toUpperCase() : 'U',
     isAdmin: user.roles?.includes('admin') || false
   };
 
@@ -254,8 +256,8 @@ function AppContent() {
       return (
         <div className="min-h-screen bg-gray-100">
           <Header 
-            anonymousMode={anonymousMode}
-            toggleAnonymousMode={toggleAnonymousMode}
+            anonymousMode={false}
+            toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
           />
@@ -291,8 +293,8 @@ function AppContent() {
       return (
         <div className="min-h-screen bg-gray-100">
           <Header 
-            anonymousMode={anonymousMode}
-            toggleAnonymousMode={toggleAnonymousMode}
+            anonymousMode={false}
+            toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
           />
@@ -308,8 +310,8 @@ function AppContent() {
       return (
         <div className="min-h-screen bg-gray-100">
           <Header 
-            anonymousMode={anonymousMode}
-            toggleAnonymousMode={toggleAnonymousMode}
+            anonymousMode={false}
+            toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
           />

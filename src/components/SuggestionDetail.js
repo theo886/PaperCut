@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, MessageCircle, Activity } from 'lucide-react';
-// Removed unused Eye import
+import { formatDate } from '../utils/formatters';
 
 const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddComment, onUpdateStatus, onUpdateScores }) => {
   const [comment, setComment] = useState('');
@@ -38,7 +38,7 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
           >
             ← Back
           </button>
-          <h2 className="text-xl font-medium flex-grow">{suggestion.title} <span className="text-gray-400 text-sm">#{suggestion.id}</span></h2>
+          <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -81,7 +81,7 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
           <div>
             <h4 className="text-sm text-gray-500 mb-1">Submitted by</h4>
             <div className="flex items-center">
-              <div className={`h-6 w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
+              <div className={`h-6 w-6 min-w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
                 {suggestion.authorInitial}
               </div>
               <span>{suggestion.author}</span>
@@ -180,14 +180,14 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
           <div className="space-y-4">
             {suggestion.comments && suggestion.comments.map(comment => (
               <div key={comment.id} className="flex gap-3">
-                <div className={`h-8 w-8 ${comment.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
+                <div className={`h-8 w-8 min-w-8 ${comment.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
                   {comment.authorInitial}
                 </div>
                 <div className="flex-grow">
                   <div className="flex items-center">
                     <span className="font-medium">{comment.author}</span>
                     {comment.isAnonymous && <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded ml-2">Anonymous</span>}
-                    <span className="text-gray-400 text-sm ml-2">{comment.timestamp}</span>
+                    <span className="text-gray-400 text-sm ml-2">{formatDate(comment.timestamp)}</span>
                   </div>
                   <p className="text-gray-700 mt-1">
                     {comment.text}
@@ -197,7 +197,7 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
             ))}
             
             <form onSubmit={handleSubmitComment} className="flex gap-3 mt-4">
-              <div className={`h-8 w-8 ${commentAnonymously ? 'bg-gray-400' : 'bg-green-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
+              <div className={`h-8 w-8 min-w-8 ${commentAnonymously ? 'bg-gray-400' : 'bg-green-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
                 {commentAnonymously ? '?' : 'U'}
               </div>
               <div className="flex-grow">
@@ -249,14 +249,14 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
                       <span className="font-medium">{activity.author}</span> changed status from{' '}
                       <span className="font-medium">{activity.from}</span> to{' '}
                       <span className="font-medium">{activity.to}</span>
-                      <div className="text-gray-400 text-xs mt-1">{activity.timestamp}</div>
+                      <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
                     </div>
                   )}
                   {activity.type === 'merge' && (
                     <div>
                       <span className="font-medium">{activity.author}</span> merged idea{' '}
                       <span className="font-medium">#{activity.sourceId}</span> into this
-                      <div className="text-gray-400 text-xs mt-1">{activity.timestamp}</div>
+                      <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
                     </div>
                   )}
                 </div>
@@ -269,7 +269,7 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
               </div>
               <div>
                 <span className="font-medium">{suggestion.author}</span> created this idea
-                <div className="text-gray-400 text-xs mt-1">{suggestion.timestamp}</div>
+                <div className="text-gray-400 text-xs mt-1">{formatDate(suggestion.timestamp)}</div>
               </div>
             </div>
           </div>

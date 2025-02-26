@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { UserX, ChevronDown, LogOut } from 'lucide-react';
-import AnonymousToggle from './AnonymousToggle';
+import { ChevronDown, LogOut } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Header = ({ anonymousMode, toggleAnonymousMode, setView, user }) => {
@@ -14,20 +13,9 @@ const Header = ({ anonymousMode, toggleAnonymousMode, setView, user }) => {
           className="text-xl font-bold text-gray-800 cursor-pointer" 
           onClick={() => setView('list')}
         >
-          Company Improvement Hub
+          Project Paper Cut
         </h1>
         <div className="flex items-center space-x-4">
-          <AnonymousToggle 
-            enabled={anonymousMode} 
-            onChange={toggleAnonymousMode} 
-          />
-          
-          {anonymousMode && (
-            <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-full text-xs flex items-center">
-              <UserX size={14} className="mr-1" /> Anonymous Mode
-            </span>
-          )}
-          
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}

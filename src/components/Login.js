@@ -9,7 +9,7 @@ const Login = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Company Improvement Hub</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Project Paper Cut</h1>
           <p className="text-gray-600">Sign in to access the improvement ideas portal</p>
         </div>
         
