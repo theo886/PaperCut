@@ -19,7 +19,7 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
                 e.stopPropagation();
                 onVote();
               }}
-              className="text-gray-400 hover:text-indigo-600 px-2 py-1 rounded-md flex items-center"
+              className={`${suggestion.hasVoted ? 'text-indigo-600' : 'text-gray-400 hover:text-indigo-600'} px-2 py-1 rounded-md flex items-center`}
               disabled={suggestion.status === 'Merged'}
             >
               <ChevronUp size={18} /> {suggestion.votes}

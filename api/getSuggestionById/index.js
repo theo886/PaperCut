@@ -25,6 +25,13 @@ module.exports = async function (context, req) {
             ]
         };
         
+        // Get the current user information from the request
+        const clientPrincipal = req.headers['x-ms-client-principal']
+            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
+            : null;
+            
+        const userId = clientPrincipal?.userId || null;
+            
         const { resources } = await container.items.query(querySpec).fetchAll();
         
         if (resources.length === 0) {
@@ -35,12 +42,19 @@ module.exports = async function (context, req) {
             return;
         }
         
+        // Add hasVoted property based on current user
+        const suggestion = resources[0];
+        const hasVoted = suggestion.voters && suggestion.voters.includes(userId);
+        
         context.res = {
             status: 200,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: resources[0]
+            body: {
+                ...suggestion,
+                hasVoted
+            }
         };
     } catch (error) {
         context.log.error(`Error fetching suggestion with id ${context.bindingData.id}:`, error);

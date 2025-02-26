@@ -52,22 +52,23 @@ module.exports = async function (context, req) {
         
         const suggestion = resources[0];
         
-        // Check if the user has already voted
+        // Initialize voters array if it doesn't exist
         if (!suggestion.voters) {
             suggestion.voters = [];
         }
         
-        if (suggestion.voters.includes(userId)) {
-            context.res = {
-                status: 400,
-                body: { message: "You have already voted for this suggestion" }
-            };
-            return;
-        }
+        // Check if the user has already voted
+        const alreadyVoted = suggestion.voters.includes(userId);
         
-        // Add the vote
-        suggestion.votes += 1;
-        suggestion.voters.push(userId);
+        if (alreadyVoted) {
+            // Toggle off - remove the vote
+            suggestion.votes -= 1;
+            suggestion.voters = suggestion.voters.filter(voter => voter !== userId);
+        } else {
+            // Toggle on - add the vote
+            suggestion.votes += 1;
+            suggestion.voters.push(userId);
+        }
         
         // Update the suggestion in CosmosDB
         const { resource: updatedSuggestion } = await container.item(id).replace(suggestion);
@@ -77,7 +78,10 @@ module.exports = async function (context, req) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: { votes: updatedSuggestion.votes }
+            body: { 
+                votes: updatedSuggestion.votes,
+                hasVoted: !alreadyVoted // Toggle state - true if we just added the vote, false if we removed it
+            }
         };
     } catch (error) {
         context.log.error(`Error voting on suggestion with id ${context.bindingData.id}:`, error);

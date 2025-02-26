@@ -104,26 +104,34 @@ function AppContent() {
     }
   };
 
-  // Vote for a suggestion
+  // Vote for a suggestion (toggle function)
   const voteSuggestion = async (id) => {
     try {
       setLoading(true);
       const response = await apiService.voteSuggestion(id);
       
-      // Update the suggestions list with the new vote count
+      // Update the suggestions list with the new vote count and voter state
       setSuggestions(suggestions.map(s => {
         if (s.id === id) {
-          return { ...s, votes: response.votes };
+          return { 
+            ...s, 
+            votes: response.votes,
+            hasVoted: response.hasVoted
+          };
         }
         return s;
       }));
       
       // Update selected suggestion if it's the one being voted on
       if (selectedSuggestion && selectedSuggestion.id === id) {
-        setSelectedSuggestion({ ...selectedSuggestion, votes: response.votes });
+        setSelectedSuggestion({ 
+          ...selectedSuggestion, 
+          votes: response.votes,
+          hasVoted: response.hasVoted
+        });
       }
     } catch (error) {
-      console.error(`Error voting for suggestion ${id}:`, error);
+      console.error(`Error toggling vote for suggestion ${id}:`, error);
       alert('Failed to register your vote. Please try again later.');
     } finally {
       setLoading(false);
