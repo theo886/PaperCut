@@ -15,7 +15,7 @@ function AppContent() {
   const [view, setView] = useState('list'); // 'list', 'detail', 'create'
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
-  const [anonymousMode, setAnonymousMode] = useState(false);
+  const [anonymousMode] = useState(false); // We're no longer toggling anonymousMode from header
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'votes'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
