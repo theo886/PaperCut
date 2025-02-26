@@ -10,7 +10,7 @@ const Header = ({ anonymousMode, toggleAnonymousMode, setView, user }) => {
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <h1 
-          className="text-xl font-bold text-gray-800 cursor-pointer" 
+          className="text-3xl font-bold text-gray-800 cursor-pointer" 
           onClick={() => setView('list')}
         >
           Project Paper Cut
