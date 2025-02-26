@@ -43,7 +43,7 @@ module.exports = async function (context, req) {
         };
         
         // Check if user is admin
-        const isAdmin = userData.userRoles.includes('admin');
+        const isAdmin = userData.userRoles.includes('admin') || userData.userRoles.includes('administrator') || userData.userRoles.includes('Owner');
         
         if (!isAdmin) {
             context.res = {

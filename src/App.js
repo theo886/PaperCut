@@ -77,7 +77,7 @@ function AppContent() {
     id: user.userId,
     name: formattedName,
     initial: formattedName ? formattedName.charAt(0).toUpperCase() : 'U',
-    isAdmin: user.roles?.includes('admin') || false
+    isAdmin: user.roles?.includes('admin') || user.roles?.includes('administrator') || user.roles?.includes('Owner') || false
   };
 
   // Navigate to suggestion detail view

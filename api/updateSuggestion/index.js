@@ -31,7 +31,7 @@ module.exports = async function (context, req) {
             userRoles: clientPrincipal.userRoles || []
         };
         
-        const isAdmin = userData.userRoles.includes('admin');
+        const isAdmin = userData.userRoles.includes('admin') || userData.userRoles.includes('administrator') || userData.userRoles.includes('Owner');
         
         const container = await getContainer();
         
