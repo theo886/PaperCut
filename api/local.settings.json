@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "COSMOS_ENDPOINT": "https://your-cosmos-account.documents.azure.com:443/",
+    "COSMOS_KEY": "your-cosmos-key-here",
+    "COSMOS_DATABASE_ID": "papercut-db",
+    "COSMOS_CONTAINER_ID": "suggestions"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}

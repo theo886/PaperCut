@@ -3,35 +3,55 @@ import Header from './components/Header';
 import SuggestionCard from './components/SuggestionCard';
 import SuggestionDetail from './components/SuggestionDetail';
 import SuggestionForm from './components/SuggestionForm';
-import { initialSuggestions } from './data';
+import { initialSuggestions } from './data'; // Fallback data
 import { ChevronUp, Clock } from 'lucide-react';
 import { AuthProvider, AuthContext } from './contexts/AuthContext';
 import Login from './components/Login';
+import apiService from './services/apiService';
 
 // Main App component with authentication
 function AppContent() {
   const [view, setView] = useState('list'); // 'list', 'detail', 'create'
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
-  const [suggestions, setSuggestions] = useState(initialSuggestions);
+  const [suggestions, setSuggestions] = useState([]);
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'votes'
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading: authLoading } = useContext(AuthContext);
   
-  // Local storage for persistence
-  useEffect(() => {
-    const storedSuggestions = localStorage.getItem('suggestions');
-    if (storedSuggestions) {
-      setSuggestions(JSON.parse(storedSuggestions));
+  // Fetch suggestions from the API
+  const fetchSuggestions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiService.getSuggestions();
+      setSuggestions(data);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setError('Failed to load suggestions. Please try again later.');
+      // Fall back to local storage or initial data if API fails
+      const storedSuggestions = localStorage.getItem('suggestions');
+      if (storedSuggestions) {
+        setSuggestions(JSON.parse(storedSuggestions));
+      } else {
+        setSuggestions(initialSuggestions);
+      }
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
+  };
+  
+  // Load suggestions on initial render
   useEffect(() => {
-    localStorage.setItem('suggestions', JSON.stringify(suggestions));
-  }, [suggestions]);
+    if (user) {
+      fetchSuggestions();
+    }
+  }, [user]);
 
   // If still loading authentication, show loading state
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -56,113 +76,160 @@ function AppContent() {
   };
 
   // Navigate to suggestion detail view
-  const viewSuggestion = (id) => {
-    const suggestion = suggestions.find(s => s.id === id);
-    setSelectedSuggestion(suggestion);
-    setView('detail');
+  const viewSuggestion = async (id) => {
+    try {
+      setLoading(true);
+      const suggestion = await apiService.getSuggestionById(id);
+      setSelectedSuggestion(suggestion);
+      setView('detail');
+    } catch (error) {
+      console.error(`Error fetching suggestion ${id}:`, error);
+      setError(`Failed to load suggestion details. Please try again later.`);
+      // Fall back to client-side data
+      const suggestion = suggestions.find(s => s.id === id);
+      if (suggestion) {
+        setSelectedSuggestion(suggestion);
+        setView('detail');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Vote for a suggestion
-  const voteSuggestion = (id) => {
-    setSuggestions(suggestions.map(s => {
-      if (s.id === id) {
-        return { ...s, votes: s.votes + 1 };
+  const voteSuggestion = async (id) => {
+    try {
+      setLoading(true);
+      const response = await apiService.voteSuggestion(id);
+      
+      // Update the suggestions list with the new vote count
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return { ...s, votes: response.votes };
+        }
+        return s;
+      }));
+      
+      // Update selected suggestion if it's the one being voted on
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion({ ...selectedSuggestion, votes: response.votes });
       }
-      return s;
-    }));
+    } catch (error) {
+      console.error(`Error voting for suggestion ${id}:`, error);
+      alert('Failed to register your vote. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Add a comment to a suggestion
-  const addComment = (id, text, isAnonymous) => {
-    const updatedSuggestions = suggestions.map(s => {
-      if (s.id === id) {
-        const newComment = {
-          id: s.comments.length + 1,
-          author: isAnonymous ? "Anonymous" : userInfo.name,
-          authorInitial: isAnonymous ? "?" : userInfo.initial,
-          authorId: isAnonymous ? null : userInfo.id,
-          isAnonymous: isAnonymous,
-          text,
-          timestamp: 'just now',
-          likes: 0
-        };
-        return { ...s, comments: [...s.comments, newComment] };
+  const addComment = async (id, text, isAnonymous) => {
+    try {
+      setLoading(true);
+      const commentData = { text, isAnonymous };
+      const newComment = await apiService.addComment(id, commentData);
+      
+      // Update the suggestions list with the new comment
+      const updatedSuggestions = suggestions.map(s => {
+        if (s.id === id) {
+          return { ...s, comments: [...s.comments, newComment] };
+        }
+        return s;
+      });
+      
+      setSuggestions(updatedSuggestions);
+      
+      // Update selectedSuggestion if it's the one being commented on
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion({ 
+          ...selectedSuggestion, 
+          comments: [...selectedSuggestion.comments, newComment] 
+        });
       }
-      return s;
-    });
-    
-    setSuggestions(updatedSuggestions);
-    
-    // Update selectedSuggestion if it's the one being commented on
-    if (selectedSuggestion && selectedSuggestion.id === id) {
-      const updatedSuggestion = updatedSuggestions.find(s => s.id === id);
-      setSelectedSuggestion(updatedSuggestion);
+    } catch (error) {
+      console.error(`Error adding comment to suggestion ${id}:`, error);
+      alert('Failed to add your comment. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
   // Update suggestion status (admin action)
-  const updateStatus = (id, status) => {
-    setSuggestions(suggestions.map(s => {
-      if (s.id === id) {
-        const newActivity = {
-          id: s.activity.length + 1,
-          type: 'status',
-          from: s.status,
-          to: status,
-          timestamp: 'just now',
-          author: userInfo.name,
-          authorInitial: userInfo.initial
-        };
-        return { 
-          ...s, 
-          status, 
-          activity: [...s.activity, newActivity] 
-        };
+  const updateStatus = async (id, status) => {
+    try {
+      setLoading(true);
+      const updatedData = { status };
+      const updatedSuggestion = await apiService.updateSuggestion(id, updatedData);
+      
+      // Update the suggestions list with the updated suggestion
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return updatedSuggestion;
+        }
+        return s;
+      }));
+      
+      // Update selectedSuggestion if it's the one being updated
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion(updatedSuggestion);
       }
-      return s;
-    }));
+    } catch (error) {
+      console.error(`Error updating status for suggestion ${id}:`, error);
+      alert('Failed to update status. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Update effort/impact scores (admin action)
-  const updateScores = (id, effortScore, impactScore) => {
-    setSuggestions(suggestions.map(s => {
-      if (s.id === id) {
-        return { 
-          ...s, 
-          effortScore, 
-          impactScore,
-          priorityScore: (6 - effortScore) * impactScore // Inverse effort (lower is better) times impact
-        };
+  const updateScores = async (id, effortScore, impactScore) => {
+    try {
+      setLoading(true);
+      const updatedData = { effortScore, impactScore };
+      const updatedSuggestion = await apiService.updateSuggestion(id, updatedData);
+      
+      // Update the suggestions list with the updated suggestion
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return updatedSuggestion;
+        }
+        return s;
+      }));
+      
+      // Update selectedSuggestion if it's the one being updated
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion(updatedSuggestion);
       }
-      return s;
-    }));
+    } catch (error) {
+      console.error(`Error updating scores for suggestion ${id}:`, error);
+      alert('Failed to update scores. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Create a new suggestion
-  const createSuggestion = (title, description, visibility, isAnonymous) => {
-    const newSuggestion = {
-      id: Date.now(), // Use timestamp as ID
-      title,
-      description,
-      author: isAnonymous ? "Anonymous" : userInfo.name,
-      authorInitial: isAnonymous ? "?" : userInfo.initial,
-      authorId: isAnonymous ? null : userInfo.id,
-      isAnonymous: isAnonymous,
-      status: 'New',
-      departments: [],
-      votes: 0,
-      comments: [],
-      activity: [],
-      timestamp: 'just now',
-      visibility,
-      effortScore: 0,
-      impactScore: 0,
-      priorityScore: 0,
-      mergedWith: []
-    };
-    
-    setSuggestions([newSuggestion, ...suggestions]);
-    setView('list');
+  const createSuggestion = async (title, description, visibility, isAnonymous) => {
+    try {
+      setLoading(true);
+      const suggestionData = {
+        title,
+        description,
+        visibility,
+        isAnonymous
+      };
+      
+      const newSuggestion = await apiService.createSuggestion(suggestionData);
+      
+      // Add the new suggestion to the list
+      setSuggestions([newSuggestion, ...suggestions]);
+      setView('list');
+    } catch (error) {
+      console.error('Error creating suggestion:', error);
+      alert('Failed to create suggestion. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Toggle anonymous mode
@@ -175,8 +242,10 @@ function AppContent() {
     if (sortBy === 'votes') {
       return b.votes - a.votes;
     }
-    // Default to newest (by id, which is a timestamp)
-    return b.id - a.id;
+    // Convert string timestamps to Date objects for proper comparison
+    const dateA = new Date(a.timestamp);
+    const dateB = new Date(b.timestamp);
+    return dateB - dateA;
   });
 
   // Render different views based on state
@@ -190,7 +259,22 @@ function AppContent() {
             setView={setView}
             user={userInfo}
           />
-          {selectedSuggestion && (
+          {loading ? (
+            <div className="max-w-4xl mx-auto p-4 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <p>Loading suggestion details...</p>
+            </div>
+          ) : error ? (
+            <div className="max-w-4xl mx-auto p-4 text-center">
+              <p className="text-red-500">{error}</p>
+              <button 
+                onClick={() => setView('list')}
+                className="mt-4 border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50"
+              >
+                Go back
+              </button>
+            </div>
+          ) : selectedSuggestion && (
             <SuggestionDetail 
               suggestion={selectedSuggestion}
               isAdmin={userInfo.isAdmin}
@@ -216,6 +300,7 @@ function AppContent() {
             onSubmit={createSuggestion}
             onCancel={() => setView('list')}
             anonymousMode={anonymousMode}
+            isSubmitting={loading}
           />
         </div>
       );
@@ -257,28 +342,49 @@ function AppContent() {
               </button>
             </div>
             
-            <div className="space-y-4">
-              {sortedSuggestions.map(suggestion => (
-                <SuggestionCard 
-                  key={suggestion.id}
-                  suggestion={suggestion}
-                  onClick={() => viewSuggestion(suggestion.id)}
-                  onVote={() => voteSuggestion(suggestion.id)}
-                />
-              ))}
-              
-              {sortedSuggestions.length === 0 && (
-                <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-                  <p className="text-gray-500">No suggestions yet. Be the first to share an idea!</p>
-                  <button 
-                    onClick={() => setView('create')}
-                    className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-                  >
-                    Make a suggestion
-                  </button>
-                </div>
-              )}
-            </div>
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                <p>Loading suggestions...</p>
+              </div>
+            )}
+            
+            {error && !loading && (
+              <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4">
+                <p>{error}</p>
+                <button 
+                  onClick={fetchSuggestions}
+                  className="mt-2 text-sm font-medium hover:underline"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+            
+            {!loading && !error && (
+              <div className="space-y-4">
+                {sortedSuggestions.map(suggestion => (
+                  <SuggestionCard 
+                    key={suggestion.id}
+                    suggestion={suggestion}
+                    onClick={() => viewSuggestion(suggestion.id)}
+                    onVote={() => voteSuggestion(suggestion.id)}
+                  />
+                ))}
+                
+                {sortedSuggestions.length === 0 && (
+                  <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+                    <p className="text-gray-500">No suggestions yet. Be the first to share an idea!</p>
+                    <button 
+                      onClick={() => setView('create')}
+                      className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                    >
+                      Make a suggestion
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       );

@@ -1,15 +1,20 @@
 {
   "routes": [
     {
+      "route": "/api/*",
+      "methods": ["GET", "POST", "PUT"],
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200,
-      "allowedRoles": ["anonymous", "authenticated"]
+      "allowedRoles": ["authenticated"]
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/api/*"]
   },
   "responseOverrides": {
     "401": {
@@ -27,6 +32,13 @@
           "clientSecretSettingName": "AZURE_CLIENT_SECRET"
         }
       }
-    }
+    },
+    "roles": [
+      {
+        "role": "admin",
+        "claim": "roles",
+        "values": ["admin", "administrator"]
+      }
+    ]
   }
 }
