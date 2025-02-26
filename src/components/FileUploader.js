@@ -12,9 +12,9 @@ const FileUploader = ({ onFileUploaded, disabled }) => {
     
     const file = files[0];
     
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File size exceeds the maximum limit of 5MB');
+    // Validate file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      setError('File size exceeds the maximum limit of 20MB');
       return;
     }
     

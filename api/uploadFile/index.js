@@ -26,12 +26,12 @@ module.exports = async function (context, req) {
 
         const file = req.body.file;
         
-        // Check file size (limit to 5MB)
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        // Check file size (limit to 20MB)
+        const MAX_SIZE = 20 * 1024 * 1024; // 20MB
         if (file.size > MAX_SIZE) {
             context.res = {
                 status: 400,
-                body: { message: "File size exceeds the 5MB limit" }
+                body: { message: "File size exceeds the 20MB limit" }
             };
             return;
         }
