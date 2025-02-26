@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, MessageCircle, Activity } from 'lucide-react';
+import { Edit, MessageCircle, Activity, GitMerge } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
+import MergeSuggestionModal from './MergeSuggestionModal';
 
-const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddComment, onUpdateStatus, onUpdateScores }) => {
+const SuggestionDetail = ({ 
+  suggestion, 
+  isAdmin, 
+  anonymousMode, 
+  onBack, 
+  onAddComment, 
+  onUpdateStatus, 
+  onUpdateScores,
+  onMergeSuggestions,
+  allSuggestions = []
+}) => {
   const [comment, setComment] = useState('');
   const [editingScores, setEditingScores] = useState(false);
   const [effortScore, setEffortScore] = useState(suggestion.effortScore);
   const [impactScore, setImpactScore] = useState(suggestion.impactScore);
   const [commentAnonymously, setCommentAnonymously] = useState(anonymousMode);
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [isMerging, setIsMerging] = useState(false);
   
   // Update scores when suggestion changes
   useEffect(() => {
@@ -28,6 +41,18 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
     setEditingScores(false);
   };
   
+  const handleMerge = async (targetId, sourceId) => {
+    try {
+      setIsMerging(true);
+      await onMergeSuggestions(targetId, sourceId);
+      setMergeModalOpen(false);
+    } catch (error) {
+      console.error('Error merging suggestions:', error);
+    } finally {
+      setIsMerging(false);
+    }
+  };
+  
   return (
     <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
@@ -39,6 +64,16 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
             ← Back
           </button>
           <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
+          
+          {isAdmin && (
+            <button
+              onClick={() => setMergeModalOpen(true)}
+              className="ml-4 text-indigo-600 hover:text-indigo-800 flex items-center text-sm"
+              title="Merge another suggestion into this one"
+            >
+              <GitMerge size={16} className="mr-1" /> Merge
+            </button>
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -184,9 +219,14 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
                   {comment.authorInitial}
                 </div>
                 <div className="flex-grow">
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-wrap">
                     <span className="font-medium">{comment.author}</span>
                     {comment.isAnonymous && <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded ml-2">Anonymous</span>}
+                    {comment.fromMerged && (
+                      <span className="text-xs bg-indigo-100 text-indigo-800 px-1 rounded ml-2 flex items-center">
+                        <GitMerge size={10} className="mr-1" /> From merged suggestion
+                      </span>
+                    )}
                     <span className="text-gray-400 text-sm ml-2">{formatDate(comment.timestamp)}</span>
                   </div>
                   <p className="text-gray-700 mt-1">
@@ -231,6 +271,27 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
           </div>
         </div>
         
+        {/* Merged suggestions section */}
+        {suggestion.mergedWith && suggestion.mergedWith.length > 0 && (
+          <div className="mt-8 border-t pt-6">
+            <h3 className="font-medium mb-3 flex items-center">
+              <GitMerge size={18} className="mr-1 text-indigo-600" /> 
+              Merged Suggestions
+            </h3>
+            <div className="space-y-2">
+              {suggestion.mergedWith.map(merged => (
+                <div key={merged.id} className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
+                  <div className="font-medium">{merged.title}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Merged on {formatDate(merged.timestamp)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activity section */}
         <div className="mt-8">
           <h3 className="font-medium mb-3 flex items-center">
             <Activity size={18} className="mr-1" /> 
@@ -254,8 +315,9 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
                   )}
                   {activity.type === 'merge' && (
                     <div>
-                      <span className="font-medium">{activity.author}</span> merged idea{' '}
-                      <span className="font-medium">#{activity.sourceId}</span> into this
+                      <span className="font-medium">{activity.author}</span> merged suggestion{' '}
+                      <span className="font-medium">{activity.sourceTitle}</span>{' '}
+                      into this
                       <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
                     </div>
                   )}
@@ -275,6 +337,16 @@ const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddCom
           </div>
         </div>
       </div>
+      
+      {/* Merge Modal */}
+      <MergeSuggestionModal
+        isOpen={mergeModalOpen}
+        onClose={() => setMergeModalOpen(false)}
+        targetSuggestion={suggestion}
+        availableSuggestions={allSuggestions}
+        onMerge={handleMerge}
+        isLoading={isMerging}
+      />
     </div>
   );
 };

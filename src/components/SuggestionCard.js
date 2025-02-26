@@ -1,10 +1,10 @@
 import React from 'react';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, GitMerge } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 
 const SuggestionCard = ({ suggestion, onClick, onVote }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+    <div className={`bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 ${suggestion.status === 'Merged' ? 'opacity-75' : ''}`}>
       <div className="p-4">
         <div className="flex justify-between">
           <h3 
@@ -20,11 +20,19 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
                 onVote();
               }}
               className="text-gray-400 hover:text-indigo-600 px-2 py-1 rounded-md flex items-center"
+              disabled={suggestion.status === 'Merged'}
             >
               <ChevronUp size={18} /> {suggestion.votes}
             </button>
           </div>
         </div>
+        
+        {suggestion.mergedInto && (
+          <div className="mt-1 text-xs text-indigo-600 flex items-center">
+            <GitMerge size={12} className="mr-1" /> 
+            Merged into <span className="font-medium ml-1">{suggestion.mergedInto.title}</span>
+          </div>
+        )}
         <p className="text-gray-600 text-sm mt-1 line-clamp-2">
           {suggestion.description}
         </p>
@@ -52,6 +60,11 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
           {suggestion.status === 'Declined' && (
             <span className="text-red-600 flex items-center bg-red-50 px-2 py-1 rounded-full text-xs">
               <span className="h-2 w-2 bg-red-600 rounded-full mr-1"></span> Declined
+            </span>
+          )}
+          {suggestion.status === 'Merged' && (
+            <span className="text-indigo-600 flex items-center bg-indigo-50 px-2 py-1 rounded-full text-xs">
+              <GitMerge size={12} className="mr-1" /> Merged
             </span>
           )}
           

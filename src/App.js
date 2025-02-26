@@ -44,6 +44,19 @@ function AppContent() {
     }
   };
   
+  // Fetch all suggestions (primarily for admin merge functionality)
+  const fetchAllSuggestions = async () => {
+    if (!userInfo?.isAdmin) return;
+    
+    try {
+      const data = await apiService.getAllSuggestions();
+      return data;
+    } catch (error) {
+      console.error('Error fetching all suggestions:', error);
+      return suggestions; // Fall back to current suggestions
+    }
+  };
+  
   // Load suggestions on initial render
   useEffect(() => {
     if (user) {
@@ -209,6 +222,40 @@ function AppContent() {
       setLoading(false);
     }
   };
+  
+  // Merge suggestions (admin action)
+  const mergeSuggestions = async (targetId, sourceId) => {
+    try {
+      setLoading(true);
+      
+      const result = await apiService.mergeSuggestions(targetId, sourceId);
+      
+      // Update suggestions list
+      setSuggestions(suggestions.map(s => {
+        if (s.id === targetId) {
+          return result.target;
+        }
+        if (s.id === sourceId) {
+          return result.source;
+        }
+        return s;
+      }));
+      
+      // Update selected suggestion if it's the target
+      if (selectedSuggestion && selectedSuggestion.id === targetId) {
+        setSelectedSuggestion(result.target);
+      }
+      
+      alert('Suggestions merged successfully');
+      return result;
+    } catch (error) {
+      console.error(`Error merging suggestions:`, error);
+      alert('Failed to merge suggestions. Please try again later.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Create a new suggestion
   const createSuggestion = async (title, description, visibility, isAnonymous) => {
@@ -285,6 +332,8 @@ function AppContent() {
               onAddComment={(text, isAnonymous) => addComment(selectedSuggestion.id, text, isAnonymous)}
               onUpdateStatus={(status) => updateStatus(selectedSuggestion.id, status)}
               onUpdateScores={(effort, impact) => updateScores(selectedSuggestion.id, effort, impact)}
+              onMergeSuggestions={mergeSuggestions}
+              allSuggestions={suggestions}
             />
           )}
         </div>

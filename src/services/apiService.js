@@ -96,6 +96,34 @@ const apiService = {
       console.error(`Error voting for suggestion ${id}:`, error);
       throw error;
     }
+  },
+  
+  // Merge suggestions
+  mergeSuggestions: async (targetId, sourceId) => {
+    try {
+      const response = await fetch(`/api/suggestions/${targetId}/merge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sourceId })
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error merging suggestions:`, error);
+      throw error;
+    }
+  },
+  
+  // Get all suggestions for admin
+  getAllSuggestions: async () => {
+    try {
+      const response = await fetch('/api/suggestions');
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching all suggestions:', error);
+      throw error;
+    }
   }
 };
 
