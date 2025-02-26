@@ -1,14 +1,29 @@
 {
   "routes": [
     {
+      "route": "/",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/index.html",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/static/*",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
+      "allowedRoles": ["authenticated"]
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+    "exclude": ["/images/*.{png,jpg,gif}", "/static/css/*", "/static/js/*"]
   },
   "responseOverrides": {
     "401": {
@@ -16,14 +31,20 @@
       "statusCode": 302
     }
   },
-"auth": {
-  "identityProviders": {
-    "azureActiveDirectory": {
-      "registration": {
-        "openIdIssuer": "https://login.microsoftonline.com/43e5dc39-9e1f-4979-b674-674ace58ff9a/v2.0",
-        "clientIdSettingName": "AZURE_CLIENT_ID",
-        "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+  "auth": {
+    "rolesSource": "/api/GetRoles",
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "userDetailsClaim": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+        "registration": {
+          "openIdIssuer": "https://login.microsoftonline.com/43e5dc39-9e1f-4979-b674-674ace58ff9a/v2.0",
+          "clientIdSettingName": "AZURE_CLIENT_ID",
+          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+        }
       }
     }
   }
 }
+        
+        
+
