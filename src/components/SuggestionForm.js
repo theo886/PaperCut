@@ -4,13 +4,13 @@ import { X, Eye, UserX, Loader2 } from 'lucide-react';
 const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('Public');
+  // Visibility feature removed
   const [submitAnonymously, setSubmitAnonymously] = useState(anonymousMode);
   
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && description.trim() && !isSubmitting) {
-      onSubmit(title, description, visibility, submitAnonymously);
+      onSubmit(title, description, submitAnonymously);
     }
   };
   
@@ -55,20 +55,7 @@ const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => 
             ></textarea>
           </div>
           
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="flex items-center">
-              <Eye size={16} className="text-gray-400 mr-2" />
-              <select
-                className="border rounded-md p-1 text-sm"
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value)}
-                disabled={isSubmitting}
-              >
-                <option value="Public">Public</option>
-                <option value="Private">Private</option>
-              </select>
-            </div>
-            
+          <div className="flex items-center mb-6">
             <div className="flex items-center">
               <input 
                 type="checkbox" 

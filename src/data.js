@@ -35,7 +35,7 @@ export const initialSuggestions = [
       }
     ],
     timestamp: '5 hours ago',
-    visibility: 'Public',
+    // Visibility field removed
     effortScore: 2,
     impactScore: 4,
     priorityScore: 8,
@@ -55,7 +55,7 @@ export const initialSuggestions = [
     comments: [],
     activity: [],
     timestamp: '1 day ago',
-    visibility: 'Public',
+    // Visibility field removed
     effortScore: 3,
     impactScore: 3,
     priorityScore: 9,
@@ -106,7 +106,7 @@ export const initialSuggestions = [
       }
     ],
     timestamp: '2 weeks ago',
-    visibility: 'Public',
+    // Visibility field removed
     effortScore: 4,
     impactScore: 5,
     priorityScore: 10,

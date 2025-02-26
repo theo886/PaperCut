@@ -248,13 +248,12 @@ function AppContent() {
   };
 
   // Create a new suggestion
-  const createSuggestion = async (title, description, visibility, isAnonymous) => {
+  const createSuggestion = async (title, description, isAnonymous) => {
     try {
       setLoading(true);
       const suggestionData = {
         title,
         description,
-        visibility,
         isAnonymous
       };
       

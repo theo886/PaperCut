@@ -22,7 +22,7 @@ module.exports = async function (context, req) {
             userRoles: clientPrincipal.userRoles || []
         };
 
-        const { title, description, visibility, isAnonymous } = req.body;
+        const { title, description, isAnonymous } = req.body;
 
         if (!title || !description) {
             context.res = {
@@ -50,7 +50,7 @@ module.exports = async function (context, req) {
             comments: [],
             activity: [],
             timestamp,
-            visibility: visibility || 'Public',
+            // Visibility feature removed
             effortScore: 0,
             impactScore: 0,
             priorityScore: 0,
