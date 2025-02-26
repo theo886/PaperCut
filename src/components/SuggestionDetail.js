@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, MessageCircle, Activity, Eye } from 'lucide-react';
+import { Edit, MessageCircle, Activity } from 'lucide-react';
+// Removed unused Eye import
 
 const SuggestionDetail = ({ suggestion, isAdmin, anonymousMode, onBack, onAddComment, onUpdateStatus, onUpdateScores }) => {
   const [comment, setComment] = useState('');
