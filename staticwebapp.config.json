@@ -16,14 +16,13 @@
       "statusCode": 302
     }
   },
-  "auth": {
-    "identityProviders": {
-      "azureActiveDirectory": {
-        "registration": {
-          "openIdIssuer": "https://login.microsoftonline.com/{tenant-id}/v2.0",
-          "clientIdSettingName": "AZURE_CLIENT_ID",
-          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
-        }
+"auth": {
+  "identityProviders": {
+    "azureActiveDirectory": {
+      "registration": {
+        "openIdIssuer": "https://login.microsoftonline.com/43e5dc39-9e1f-4979-b674-674ace58ff9a/v2.0",
+        "clientIdSettingName": "AZURE_CLIENT_ID",
+        "clientSecretSettingName": "AZURE_CLIENT_SECRET"
       }
     }
   }
