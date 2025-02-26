@@ -32,7 +32,7 @@ module.exports = async function (context, req) {
             userRoles: clientPrincipal.userRoles || []
         };
         
-        const { text, isAnonymous } = req.body;
+        const { text, isAnonymous, attachments } = req.body;
         
         if (!text) {
             context.res = {
@@ -76,7 +76,8 @@ module.exports = async function (context, req) {
             isAnonymous: isAnonymous || false,
             text,
             timestamp: new Date().toISOString(),
-            likes: 0
+            likes: 0,
+            attachments: attachments || []
         };
         
         // Add the comment to the suggestion

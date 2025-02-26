@@ -128,10 +128,10 @@ function AppContent() {
   };
 
   // Add a comment to a suggestion
-  const addComment = async (id, text, isAnonymous) => {
+  const addComment = async (id, text, isAnonymous, attachments = []) => {
     try {
       setLoading(true);
-      const commentData = { text, isAnonymous };
+      const commentData = { text, isAnonymous, attachments };
       const newComment = await apiService.addComment(id, commentData);
       
       // Update the suggestions list with the new comment
@@ -248,13 +248,14 @@ function AppContent() {
   };
 
   // Create a new suggestion
-  const createSuggestion = async (title, description, isAnonymous) => {
+  const createSuggestion = async (title, description, isAnonymous, attachments = []) => {
     try {
       setLoading(true);
       const suggestionData = {
         title,
         description,
-        isAnonymous
+        isAnonymous,
+        attachments
       };
       
       const newSuggestion = await apiService.createSuggestion(suggestionData);

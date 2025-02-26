@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, MessageCircle, Activity, GitMerge } from 'lucide-react';
+import { Edit, MessageCircle, Activity, GitMerge, Paperclip } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 import MergeSuggestionModal from './MergeSuggestionModal';
+import FileUploader, { AttachmentList, Attachment } from './FileUploader';
 
 const SuggestionDetail = ({ 
   suggestion, 
@@ -21,6 +22,7 @@ const SuggestionDetail = ({
   const [commentAnonymously, setCommentAnonymously] = useState(anonymousMode);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [isMerging, setIsMerging] = useState(false);
+  const [commentAttachments, setCommentAttachments] = useState([]);
   
   // Update scores when suggestion changes
   useEffect(() => {
@@ -31,9 +33,18 @@ const SuggestionDetail = ({
   const handleSubmitComment = (e) => {
     e.preventDefault();
     if (comment.trim()) {
-      onAddComment(comment, commentAnonymously);
+      onAddComment(comment, commentAnonymously, commentAttachments);
       setComment('');
+      setCommentAttachments([]);
     }
+  };
+  
+  const handleCommentFileUploaded = (fileInfo) => {
+    setCommentAttachments([...commentAttachments, fileInfo]);
+  };
+  
+  const handleRemoveCommentAttachment = (index) => {
+    setCommentAttachments(commentAttachments.filter((_, i) => i !== index));
   };
   
   const handleSaveScores = () => {
@@ -204,6 +215,20 @@ const SuggestionDetail = ({
           <p className="text-gray-700 whitespace-pre-line">
             {suggestion.description}
           </p>
+          
+          {/* Display attachments if any */}
+          {suggestion.attachments && suggestion.attachments.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm text-gray-500 mb-2 flex items-center">
+                <Paperclip size={16} className="mr-1" /> Attachments
+              </h4>
+              <div className="space-y-2">
+                {suggestion.attachments.map((attachment, index) => (
+                  <Attachment key={index} attachment={attachment} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="mt-8">
@@ -232,6 +257,15 @@ const SuggestionDetail = ({
                   <p className="text-gray-700 mt-1">
                     {comment.text}
                   </p>
+                  
+                  {/* Display comment attachments if any */}
+                  {comment.attachments && comment.attachments.length > 0 && (
+                    <div className="mt-2">
+                      {comment.attachments.map((attachment, idx) => (
+                        <Attachment key={idx} attachment={attachment} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -266,6 +300,15 @@ const SuggestionDetail = ({
                     Comment
                   </button>
                 </div>
+                
+                <FileUploader 
+                  onFileUploaded={handleCommentFileUploaded}
+                />
+                
+                <AttachmentList 
+                  attachments={commentAttachments}
+                  onRemove={handleRemoveCommentAttachment}
+                />
               </div>
             </form>
           </div>

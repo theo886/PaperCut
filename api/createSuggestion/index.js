@@ -22,7 +22,7 @@ module.exports = async function (context, req) {
             userRoles: clientPrincipal.userRoles || []
         };
 
-        const { title, description, isAnonymous } = req.body;
+        const { title, description, isAnonymous, attachments } = req.body;
 
         if (!title || !description) {
             context.res = {
@@ -54,7 +54,8 @@ module.exports = async function (context, req) {
             effortScore: 0,
             impactScore: 0,
             priorityScore: 0,
-            mergedWith: []
+            mergedWith: [],
+            attachments: attachments || []
         };
 
         const { resource: createdItem } = await container.items.create(newSuggestion);

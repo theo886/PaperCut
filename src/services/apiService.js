@@ -1,5 +1,21 @@
 // API service for interacting with the backend
 
+// Helper function to convert a file to base64
+const readFileAsBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Extract the base64 data from the result
+      // reader.result is like "data:image/png;base64,iVBORw0KGgo..."
+      // We only want the part after the comma
+      const base64String = reader.result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 const handleResponse = async (response) => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -9,6 +25,31 @@ const handleResponse = async (response) => {
 };
 
 const apiService = {
+  // Upload a file
+  uploadFile: async (file) => {
+    try {
+      // Create a FormData object
+      const fileData = {
+        name: file.name,
+        size: file.size,
+        contentType: file.type,
+        data: await readFileAsBase64(file)
+      };
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ file: fileData })
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  },
   // Get all suggestions
   getSuggestions: async () => {
     try {

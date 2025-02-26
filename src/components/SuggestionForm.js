@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
-import { X, Eye, UserX, Loader2 } from 'lucide-react';
+import { X, UserX, Loader2 } from 'lucide-react';
+import FileUploader, { AttachmentList } from './FileUploader';
 
 const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   // Visibility feature removed
   const [submitAnonymously, setSubmitAnonymously] = useState(anonymousMode);
+  const [attachments, setAttachments] = useState([]);
   
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && description.trim() && !isSubmitting) {
-      onSubmit(title, description, submitAnonymously);
+      onSubmit(title, description, submitAnonymously, attachments);
     }
+  };
+  
+  const handleFileUploaded = (fileInfo) => {
+    setAttachments([...attachments, fileInfo]);
+  };
+  
+  const handleRemoveAttachment = (index) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
   };
   
   return (
@@ -94,6 +104,16 @@ const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => 
               )}
             </button>
           </div>
+          
+          <FileUploader 
+            onFileUploaded={handleFileUploaded} 
+            disabled={isSubmitting}
+          />
+          
+          <AttachmentList 
+            attachments={attachments} 
+            onRemove={handleRemoveAttachment}
+          />
         </form>
       </div>
     </div>
