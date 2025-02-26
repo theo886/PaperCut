@@ -3,7 +3,8 @@
     {
       "route": "/*",
       "serve": "/index.html",
-      "statusCode": 200
+      "statusCode": 200,
+      "allowedRoles": ["anonymous", "authenticated"]
     }
   ],
   "navigationFallback": {
@@ -19,7 +20,7 @@
   "auth": {
     "identityProviders": {
       "azureActiveDirectory": {
-        "userDetailsClaim": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+        "userDetailsClaim": "preferred_username",
         "registration": {
           "openIdIssuer": "https://login.microsoftonline.com/43e5dc39-9e1f-4979-b674-674ace58ff9a/v2.0",
           "clientIdSettingName": "AZURE_CLIENT_ID",
