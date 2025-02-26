@@ -44,18 +44,8 @@ function AppContent() {
     }
   };
   
-  // Fetch all suggestions (primarily for admin merge functionality)
-  const fetchAllSuggestions = async () => {
-    if (!userInfo?.isAdmin) return;
-    
-    try {
-      const data = await apiService.getAllSuggestions();
-      return data;
-    } catch (error) {
-      console.error('Error fetching all suggestions:', error);
-      return suggestions; // Fall back to current suggestions
-    }
-  };
+  // We don't need to fetch all suggestions separately as we're
+  // using the already loaded suggestions list for the merge functionality
   
   // Load suggestions on initial render
   useEffect(() => {
@@ -281,10 +271,7 @@ function AppContent() {
     }
   };
 
-  // Toggle anonymous mode
-  const toggleAnonymousMode = () => {
-    setAnonymousMode(!anonymousMode);
-  };
+  // Anonymous mode is now controlled at the component level
 
   // Sort suggestions
   const sortedSuggestions = [...suggestions].sort((a, b) => {
