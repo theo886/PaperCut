@@ -1,29 +1,14 @@
 {
   "routes": [
     {
-      "route": "/",
-      "allowedRoles": ["anonymous", "authenticated"]
-    },
-    {
-      "route": "/index.html",
-      "allowedRoles": ["anonymous", "authenticated"]
-    },
-    {
-      "route": "/static/*",
-      "allowedRoles": ["anonymous", "authenticated"]
-    },
-    {
-      "route": "/api/*",
-      "allowedRoles": ["authenticated"]
-    },
-    {
       "route": "/*",
-      "allowedRoles": ["authenticated"]
+      "serve": "/index.html",
+      "statusCode": 200
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/static/css/*", "/static/js/*"]
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
   },
   "responseOverrides": {
     "401": {
@@ -32,7 +17,6 @@
     }
   },
   "auth": {
-    "rolesSource": "/api/GetRoles",
     "identityProviders": {
       "azureActiveDirectory": {
         "userDetailsClaim": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
@@ -45,6 +29,3 @@
     }
   }
 }
-        
-        
-
