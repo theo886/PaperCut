@@ -440,6 +440,10 @@ function AppContent() {
               onUpdateStatus={(status) => updateStatus(selectedSuggestion.id, status)}
               onUpdateScores={(effort, impact) => updateScores(selectedSuggestion.id, effort, impact)}
               onMergeSuggestions={mergeSuggestions}
+              onDelete={deleteSuggestion}
+              onLock={lockSuggestion}
+              onPin={pinSuggestion}
+              currentUser={userInfo}
               allSuggestions={suggestions}
             />
           )}

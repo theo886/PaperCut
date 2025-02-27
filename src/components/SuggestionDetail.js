@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Edit, MessageCircle, Activity, GitMerge, Paperclip, Lock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit, MessageCircle, Activity, GitMerge, Paperclip, MoreVertical, Trash, Lock, Pin } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 import MergeSuggestionModal from './MergeSuggestionModal';
 import FileUploader, { AttachmentList, Attachment } from './FileUploader';
@@ -13,8 +13,32 @@ const SuggestionDetail = ({
   onUpdateStatus, 
   onUpdateScores,
   onMergeSuggestions,
+  onDelete,
+  onLock,
+  onPin,
+  currentUser,
   allSuggestions = []
 }) => {
+  // Add state for menu visibility
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+  
+  // Add this useEffect to handle clicks outside the menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Check if current user can delete this suggestion
+  const canDelete = isAdmin || (currentUser && currentUser.id === suggestion.authorId);
   const [comment, setComment] = useState('');
   const [editingScores, setEditingScores] = useState(false);
   const [effortScore, setEffortScore] = useState(suggestion.effortScore);
@@ -76,16 +100,78 @@ const SuggestionDetail = ({
           </button>
           <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
           
-          {isAdmin && (
-            <button
-              onClick={() => setMergeModalOpen(true)}
-              className="ml-4 text-indigo-600 hover:text-indigo-800 flex items-center text-sm"
-              title="Merge this suggestion into another one"
-              id="openMergeModalButton"
+          {/* 3-dot menu */}
+          <div className="relative" ref={menuRef}>
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
             >
-              <GitMerge size={16} className="mr-1" /> Merge Into Another
+              <MoreVertical size={20} />
             </button>
-          )}
+            
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                {canDelete && (
+                  <button
+                    onClick={() => {
+                      onDelete(suggestion.id);
+                      setShowMenu(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <div className="flex items-center">
+                      <Trash size={16} className="mr-2" />
+                      Delete
+                    </div>
+                  </button>
+                )}
+                
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setMergeModalOpen(true);
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      id="openMergeModalButton"
+                    >
+                      <div className="flex items-center">
+                        <GitMerge size={16} className="mr-2" />
+                        Merge
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        onLock(suggestion.id, !suggestion.isLocked);
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center">
+                        <Lock size={16} className="mr-2" />
+                        {suggestion.isLocked ? 'Unlock' : 'Lock'}
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        onPin(suggestion.id, !suggestion.isPinned);
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center">
+                        <Pin size={16} className="mr-2" />
+                        {suggestion.isPinned ? 'Unpin' : 'Pin'}
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -107,6 +193,17 @@ const SuggestionDetail = ({
               <div className="text-yellow-600 flex items-center">
                 <span className="h-2 w-2 bg-yellow-600 rounded-full mr-1"></span> 
                 {suggestion.status}
+              </div>
+            )}
+            {/* Add these status indicators */}
+            {suggestion.isLocked && (
+              <div className="mt-1 text-gray-600 flex items-center text-sm">
+                <Lock size={14} className="mr-1" /> Locked
+              </div>
+            )}
+            {suggestion.isPinned && (
+              <div className="mt-1 text-blue-600 flex items-center text-sm">
+                <Pin size={14} className="mr-1" /> Pinned
               </div>
             )}
           </div>
@@ -290,6 +387,7 @@ const SuggestionDetail = ({
                       className="mr-2"
                       checked={commentAnonymously}
                       onChange={() => setCommentAnonymously(!commentAnonymously)}
+                      disabled={suggestion.isLocked}
                     />
                     Post anonymously
                   </label>
