@@ -257,10 +257,8 @@ function AppContent() {
         return s;
       }));
       
-      // Update selected suggestion if it's the target
-      if (selectedSuggestion && selectedSuggestion.id === targetId) {
-        setSelectedSuggestion(result.target);
-      }
+      // After merging, go back to the list view since the current suggestion is now merged
+      setView('list');
       
       alert('Suggestions merged successfully');
       return result;
@@ -300,15 +298,17 @@ function AppContent() {
   // Anonymous mode is now controlled at the component level
 
   // Sort suggestions
-  const sortedSuggestions = [...suggestions].sort((a, b) => {
-    if (sortBy === 'votes') {
-      return b.votes - a.votes;
-    }
-    // Convert string timestamps to Date objects for proper comparison
-    const dateA = new Date(a.timestamp);
-    const dateB = new Date(b.timestamp);
-    return dateB - dateA;
-  });
+  const sortedSuggestions = [...suggestions]
+    .filter(suggestion => suggestion.status !== 'Merged') // Filter out merged suggestions
+    .sort((a, b) => {
+      if (sortBy === 'votes') {
+        return b.votes - a.votes;
+      }
+      // Convert string timestamps to Date objects for proper comparison
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB - dateA;
+    });
 
   // Render different views based on state
   switch (view) {

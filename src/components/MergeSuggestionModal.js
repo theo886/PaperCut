@@ -30,7 +30,8 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
   
   const handleMerge = () => {
     if (!selectedSourceId) return;
-    onMerge(targetSuggestion.id, selectedSourceId);
+    // Reverse the order - current suggestion becomes source, selected becomes target
+    onMerge(selectedSourceId, targetSuggestion.id);
   };
   
   if (!isOpen || !targetSuggestion) return null;
@@ -53,7 +54,7 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
         </div>
         
         <div className="p-4 border-b bg-gray-50">
-          <h3 className="font-medium mb-2">Target Suggestion (Keep)</h3>
+          <h3 className="font-medium mb-2">Source Suggestion (Will be marked as merged)</h3>
           <div className="bg-white p-3 rounded border">
             <div className="font-medium">{targetSuggestion.title}</div>
             <div className="text-sm text-gray-500 mt-1">
@@ -69,7 +70,7 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
         
         <div className="p-4 flex-grow overflow-auto">
           <div className="mb-4">
-            <h3 className="font-medium mb-2">Select Suggestion to Merge (Will be marked as merged)</h3>
+            <h3 className="font-medium mb-2">Select Target Suggestion (Keep)</h3>
             <div className="relative">
               <input
                 type="text"

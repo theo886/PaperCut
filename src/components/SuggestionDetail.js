@@ -80,9 +80,9 @@ const SuggestionDetail = ({
             <button
               onClick={() => setMergeModalOpen(true)}
               className="ml-4 text-indigo-600 hover:text-indigo-800 flex items-center text-sm"
-              title="Merge another suggestion into this one"
+              title="Merge this suggestion into another one"
             >
-              <GitMerge size={16} className="mr-1" /> Merge
+              <GitMerge size={16} className="mr-1" /> Merge Into Another
             </button>
           )}
         </div>
