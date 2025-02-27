@@ -18,21 +18,7 @@ const FileUploader = ({ onFileUploaded, disabled }) => {
       return;
     }
     
-    // Validate file type
-    const allowedTypes = [
-      'image/jpeg', 
-      'image/png', 
-      'image/gif', 
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain'
-    ];
-    
-    if (!allowedTypes.includes(file.type)) {
-      setError('File type not allowed. Accepted file types: JPG, PNG, GIF, PDF, DOC, DOCX, TXT');
-      return;
-    }
+    // File type validation removed - all types are now allowed
     
     try {
       setUploading(true);
@@ -74,7 +60,7 @@ const FileUploader = ({ onFileUploaded, disabled }) => {
           type="file" 
           className="hidden"
           onChange={handleFileChange}
-          accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
+          accept="*"
           disabled={disabled || uploading}
         />
       </label>
