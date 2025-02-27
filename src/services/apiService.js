@@ -186,14 +186,20 @@ const apiService = {
   },
 
   // Lock/unlock a suggestion
-  lockSuggestion: async (id, isLocked) => {
+  lockSuggestion: async (id, isLocked, isAdmin) => {
     try {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Only add admin header if user is admin
+      if (isAdmin) {
+        headers['X-Admin-Status'] = 'true';
+      }
+      
       const response = await fetch(`/api/suggestions/${id}/lock`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Status': 'true'
-        },
+        headers: headers,
         body: JSON.stringify({ isLocked })
       });
       return handleResponse(response);
@@ -204,14 +210,20 @@ const apiService = {
   },
 
   // Pin/unpin a suggestion
-  pinSuggestion: async (id, isPinned) => {
+  pinSuggestion: async (id, isPinned, isAdmin) => {
     try {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Only add admin header if user is admin
+      if (isAdmin) {
+        headers['X-Admin-Status'] = 'true';
+      }
+      
       const response = await fetch(`/api/suggestions/${id}/pin`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Status': 'true'
-        },
+        headers: headers,
         body: JSON.stringify({ isPinned })
       });
       return handleResponse(response);

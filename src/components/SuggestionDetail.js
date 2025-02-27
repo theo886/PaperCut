@@ -111,64 +111,82 @@ const SuggestionDetail = ({
             
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                {canDelete && (
-                  <button
-                    onClick={() => {
+                {/* Delete option with permission check */}
+                <button
+                  onClick={() => {
+                    if (canDelete) {
                       onDelete(suggestion.id);
                       setShowMenu(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    <div className="flex items-center">
-                      <Trash size={16} className="mr-2" />
-                      Delete
-                    </div>
-                  </button>
-                )}
+                    }
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm ${
+                    canDelete ? 'text-red-600 hover:bg-red-50' : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!canDelete}
+                >
+                  <div className="flex items-center">
+                    <Trash size={16} className="mr-2" />
+                    Delete
+                  </div>
+                </button>
                 
-                {isAdmin && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setMergeModalOpen(true);
-                        setShowMenu(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      id="openMergeModalButton"
-                    >
-                      <div className="flex items-center">
-                        <GitMerge size={16} className="mr-2" />
-                        Merge
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        onLock(suggestion.id, !suggestion.isLocked);
-                        setShowMenu(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <div className="flex items-center">
-                        <Lock size={16} className="mr-2" />
-                        {suggestion.isLocked ? 'Unlock' : 'Lock'}
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        onPin(suggestion.id, !suggestion.isPinned);
-                        setShowMenu(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <div className="flex items-center">
-                        <Pin size={16} className="mr-2" />
-                        {suggestion.isPinned ? 'Unpin' : 'Pin'}
-                      </div>
-                    </button>
-                  </>
-                )}
+                {/* Merge option with permission check */}
+                <button
+                  onClick={() => {
+                    if (isAdmin) {
+                      setMergeModalOpen(true);
+                      setShowMenu(false);
+                    }
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm ${
+                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!isAdmin}
+                  id="openMergeModalButton"
+                >
+                  <div className="flex items-center">
+                    <GitMerge size={16} className="mr-2" />
+                    Merge
+                  </div>
+                </button>
+                
+                {/* Lock option with permission check */}
+                <button
+                  onClick={() => {
+                    if (isAdmin) {
+                      onLock(suggestion.id, !suggestion.isLocked);
+                      setShowMenu(false);
+                    }
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm ${
+                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!isAdmin}
+                >
+                  <div className="flex items-center">
+                    <Lock size={16} className="mr-2" />
+                    {suggestion.isLocked ? 'Unlock' : 'Lock'}
+                  </div>
+                </button>
+                
+                {/* Pin option with permission check */}
+                <button
+                  onClick={() => {
+                    if (isAdmin) {
+                      onPin(suggestion.id, !suggestion.isPinned);
+                      setShowMenu(false);
+                    }
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm ${
+                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!isAdmin}
+                >
+                  <div className="flex items-center">
+                    <Pin size={16} className="mr-2" />
+                    {suggestion.isPinned ? 'Unpin' : 'Pin'}
+                  </div>
+                </button>
               </div>
             )}
           </div>

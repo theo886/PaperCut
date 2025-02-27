@@ -323,9 +323,16 @@ function AppContent() {
 
   // Lock/unlock a suggestion
   const lockSuggestion = async (id, isLocked) => {
+    // First check if the user is admin on the client side as an extra safety measure
+    if (!userInfo.isAdmin) {
+      alert('You do not have permission to perform this action.');
+      return;
+    }
+    
     try {
       setLoading(true);
-      const updatedSuggestion = await apiService.lockSuggestion(id, isLocked);
+      // Pass the isAdmin flag to the API call
+      const updatedSuggestion = await apiService.lockSuggestion(id, isLocked, userInfo.isAdmin);
       
       // Update the suggestions list
       setSuggestions(suggestions.map(s => {
@@ -341,7 +348,11 @@ function AppContent() {
       }
     } catch (error) {
       console.error(`Error locking/unlocking suggestion ${id}:`, error);
-      alert(`Failed to ${isLocked ? 'lock' : 'unlock'} suggestion. Please try again later.`);
+      if (error.message && error.message.includes('Permission denied')) {
+        alert('You do not have permission to perform this action.');
+      } else {
+        alert(`Failed to ${isLocked ? 'lock' : 'unlock'} suggestion. Please try again later.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -349,9 +360,16 @@ function AppContent() {
 
   // Pin/unpin a suggestion
   const pinSuggestion = async (id, isPinned) => {
+    // First check if the user is admin on the client side as an extra safety measure
+    if (!userInfo.isAdmin) {
+      alert('You do not have permission to perform this action.');
+      return;
+    }
+    
     try {
       setLoading(true);
-      const updatedSuggestion = await apiService.pinSuggestion(id, isPinned);
+      // Pass the isAdmin flag to the API call
+      const updatedSuggestion = await apiService.pinSuggestion(id, isPinned, userInfo.isAdmin);
       
       // Update the suggestions list
       setSuggestions(suggestions.map(s => {
@@ -367,7 +385,11 @@ function AppContent() {
       }
     } catch (error) {
       console.error(`Error pinning/unpinning suggestion ${id}:`, error);
-      alert(`Failed to ${isPinned ? 'pin' : 'unpin'} suggestion. Please try again later.`);
+      if (error.message && error.message.includes('Permission denied')) {
+        alert('You do not have permission to perform this action.');
+      } else {
+        alert(`Failed to ${isPinned ? 'pin' : 'unpin'} suggestion. Please try again later.`);
+      }
     } finally {
       setLoading(false);
     }
