@@ -9,6 +9,7 @@ import { AuthProvider, AuthContext } from './contexts/AuthContext';
 import Login from './components/Login';
 import apiService from './services/apiService';
 import { formatUserName } from './utils/formatters';
+import adminEmails from './adminEmails';
 
 // Main App component with authentication
 function AppContent() {
@@ -76,12 +77,23 @@ function AppContent() {
   const displayName = user.displayName || formatUserName(user.userDetails);
   console.log("Using display name:", displayName, "from user:", user);
   
+  // Check if user email is in the admin list
+  const isAdmin = user && user.userDetails && 
+    adminEmails.some(email => 
+      email.toLowerCase() === user.userDetails.toLowerCase()
+    );
+
   const userInfo = {
     id: user.userId,
     name: displayName,
     initial: displayName ? displayName.charAt(0).toUpperCase() : 'U',
-    isAdmin: user.isAdmin || false
+    isAdmin: isAdmin
   };
+
+  // Add a console log to see what's happening
+  console.log('User details:', user.userDetails);
+  console.log('Is admin:', isAdmin);
+  console.log('Admin list:', adminEmails);
 
   // Navigate to suggestion detail view
   const viewSuggestion = async (id) => {
