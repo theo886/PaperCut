@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, MessageCircle, Activity, GitMerge, Paperclip } from 'lucide-react';
+import { Edit, MessageCircle, Activity, GitMerge, Paperclip, Lock } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 import MergeSuggestionModal from './MergeSuggestionModal';
 import FileUploader, { AttachmentList, Attachment } from './FileUploader';
@@ -81,6 +81,7 @@ const SuggestionDetail = ({
               onClick={() => setMergeModalOpen(true)}
               className="ml-4 text-indigo-600 hover:text-indigo-800 flex items-center text-sm"
               title="Merge this suggestion into another one"
+              id="openMergeModalButton"
             >
               <GitMerge size={16} className="mr-1" /> Merge Into Another
             </button>
@@ -295,7 +296,7 @@ const SuggestionDetail = ({
                   <button 
                     type="submit"
                     className="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm"
-                    disabled={!comment.trim()}
+                    disabled={!comment.trim() || suggestion.isLocked}
                   >
                     Comment
                   </button>
@@ -309,6 +310,13 @@ const SuggestionDetail = ({
                   attachments={commentAttachments}
                   onRemove={handleRemoveCommentAttachment}
                 />
+                
+                {suggestion.isLocked && (
+                  <div className="mt-2 text-sm text-red-600 flex items-center">
+                    <Lock size={14} className="mr-1" />
+                    This suggestion is locked and cannot receive new comments
+                  </div>
+                )}
               </div>
             </form>
           </div>

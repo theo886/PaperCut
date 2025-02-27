@@ -1,8 +1,38 @@
-import React from 'react';
-import { ChevronUp, GitMerge } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronUp, GitMerge, MoreVertical, Trash, Lock, Pin } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 
-const SuggestionCard = ({ suggestion, onClick, onVote }) => {
+const SuggestionCard = ({ 
+  suggestion, 
+  onClick, 
+  onVote, 
+  onDelete, 
+  onMerge, 
+  onLock, 
+  onPin,
+  currentUser,
+  isAdmin
+}) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Check if current user can delete this suggestion
+  const canDelete = isAdmin || (currentUser && currentUser.id === suggestion.authorId);
+
   return (
     <div className={`bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 ${suggestion.status === 'Merged' ? 'opacity-75' : ''}`}>
       <div className="p-4">
@@ -13,7 +43,7 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
           >
             {suggestion.title}
           </h3>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-2">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -24,6 +54,85 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
             >
               <ChevronUp size={18} /> {suggestion.votes}
             </button>
+            
+            {/* 3-dot menu */}
+            <div className="relative" ref={menuRef}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+              >
+                <MoreVertical size={16} />
+              </button>
+              
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                  {canDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(suggestion.id);
+                        setShowMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <div className="flex items-center">
+                        <Trash size={16} className="mr-2" />
+                        Delete
+                      </div>
+                    </button>
+                  )}
+                  
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMerge(suggestion.id);
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <GitMerge size={16} className="mr-2" />
+                          Merge
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onLock(suggestion.id, !suggestion.isLocked);
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <Lock size={16} className="mr-2" />
+                          {suggestion.isLocked ? 'Unlock' : 'Lock'}
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPin(suggestion.id, !suggestion.isPinned);
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <div className="flex items-center">
+                          <Pin size={16} className="mr-2" />
+                          {suggestion.isPinned ? 'Unpin' : 'Pin'}
+                        </div>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
@@ -65,6 +174,16 @@ const SuggestionCard = ({ suggestion, onClick, onVote }) => {
           {suggestion.status === 'Merged' && (
             <span className="text-indigo-600 flex items-center bg-indigo-50 px-2 py-1 rounded-full text-xs">
               <GitMerge size={12} className="mr-1" /> Merged
+            </span>
+          )}
+          {suggestion.isLocked && (
+            <span className="text-gray-600 flex items-center bg-gray-100 px-2 py-1 rounded-full text-xs">
+              <Lock size={12} className="mr-1" /> Locked
+            </span>
+          )}
+          {suggestion.isPinned && (
+            <span className="text-blue-600 flex items-center bg-blue-50 px-2 py-1 rounded-full text-xs">
+              <Pin size={12} className="mr-1" /> Pinned
             </span>
           )}
           

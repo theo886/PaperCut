@@ -167,6 +167,58 @@ const apiService = {
       console.error('Error fetching all suggestions:', error);
       throw error;
     }
+  },
+  
+  // Delete a suggestion
+  deleteSuggestion: async (id) => {
+    try {
+      const response = await fetch(`/api/suggestions/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error deleting suggestion ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Lock/unlock a suggestion
+  lockSuggestion: async (id, isLocked) => {
+    try {
+      const response = await fetch(`/api/suggestions/${id}/lock`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Status': 'true'
+        },
+        body: JSON.stringify({ isLocked })
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error locking/unlocking suggestion ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Pin/unpin a suggestion
+  pinSuggestion: async (id, isPinned) => {
+    try {
+      const response = await fetch(`/api/suggestions/${id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Status': 'true'
+        },
+        body: JSON.stringify({ isPinned })
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error pinning/unpinning suggestion ${id}:`, error);
+      throw error;
+    }
   }
 };
 

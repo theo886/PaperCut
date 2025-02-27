@@ -298,10 +298,103 @@ function AppContent() {
 
   // Anonymous mode is now controlled at the component level
 
+  // Delete a suggestion
+  const deleteSuggestion = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this suggestion?')) return;
+    
+    try {
+      setLoading(true);
+      await apiService.deleteSuggestion(id);
+      
+      // Remove the suggestion from the list
+      setSuggestions(suggestions.filter(s => s.id !== id));
+      
+      // If the deleted suggestion was selected, go back to list view
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setView('list');
+      }
+    } catch (error) {
+      console.error(`Error deleting suggestion ${id}:`, error);
+      alert('Failed to delete suggestion. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Lock/unlock a suggestion
+  const lockSuggestion = async (id, isLocked) => {
+    try {
+      setLoading(true);
+      const updatedSuggestion = await apiService.lockSuggestion(id, isLocked);
+      
+      // Update the suggestions list
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return { ...s, isLocked: updatedSuggestion.isLocked };
+        }
+        return s;
+      }));
+      
+      // Update selected suggestion if it's the one being updated
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion({ ...selectedSuggestion, isLocked: updatedSuggestion.isLocked });
+      }
+    } catch (error) {
+      console.error(`Error locking/unlocking suggestion ${id}:`, error);
+      alert(`Failed to ${isLocked ? 'lock' : 'unlock'} suggestion. Please try again later.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Pin/unpin a suggestion
+  const pinSuggestion = async (id, isPinned) => {
+    try {
+      setLoading(true);
+      const updatedSuggestion = await apiService.pinSuggestion(id, isPinned);
+      
+      // Update the suggestions list
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return { ...s, isPinned: updatedSuggestion.isPinned };
+        }
+        return s;
+      }));
+      
+      // Update selected suggestion if it's the one being updated
+      if (selectedSuggestion && selectedSuggestion.id === id) {
+        setSelectedSuggestion({ ...selectedSuggestion, isPinned: updatedSuggestion.isPinned });
+      }
+    } catch (error) {
+      console.error(`Error pinning/unpinning suggestion ${id}:`, error);
+      alert(`Failed to ${isPinned ? 'pin' : 'unpin'} suggestion. Please try again later.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Prepare to merge a suggestion
+  const prepareMergeSuggestion = (id) => {
+    viewSuggestion(id).then(() => {
+      setTimeout(() => {
+        // Assuming there's a setMergeModalOpen state in the detail view
+        // or pass this to SuggestionDetail component
+        if (selectedSuggestion) {
+          document.getElementById('openMergeModalButton')?.click();
+        }
+      }, 300);
+    });
+  };
+
   // Sort suggestions
   const sortedSuggestions = [...suggestions]
     .filter(suggestion => suggestion.status !== 'Merged') // Filter out merged suggestions
     .sort((a, b) => {
+      // First prioritize pinned posts
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Then sort by votes or date
       if (sortBy === 'votes') {
         return b.votes - a.votes;
       }
@@ -439,6 +532,12 @@ function AppContent() {
                     suggestion={suggestion}
                     onClick={() => viewSuggestion(suggestion.id)}
                     onVote={() => voteSuggestion(suggestion.id)}
+                    onDelete={deleteSuggestion}
+                    onMerge={prepareMergeSuggestion}
+                    onLock={lockSuggestion}
+                    onPin={pinSuggestion}
+                    currentUser={userInfo}
+                    isAdmin={userInfo.isAdmin}
                   />
                 ))}
                 
