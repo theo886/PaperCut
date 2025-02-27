@@ -342,7 +342,7 @@ function AppContent() {
               isAdmin={userInfo.isAdmin}
               anonymousMode={anonymousMode}
               onBack={() => setView('list')}
-              onAddComment={(text, isAnonymous) => addComment(selectedSuggestion.id, text, isAnonymous)}
+              onAddComment={(text, isAnonymous, attachments) => addComment(selectedSuggestion.id, text, isAnonymous, attachments)}
               onUpdateStatus={(status) => updateStatus(selectedSuggestion.id, status)}
               onUpdateScores={(effort, impact) => updateScores(selectedSuggestion.id, effort, impact)}
               onMergeSuggestions={mergeSuggestions}
