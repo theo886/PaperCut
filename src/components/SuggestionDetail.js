@@ -65,7 +65,7 @@ const SuggestionDetail = ({
   };
   
   return (
-    <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
         <div className="flex items-center mb-4">
           <button 

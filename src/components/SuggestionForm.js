@@ -161,7 +161,7 @@ const SuggestionForm = ({
   };
   
   return (
-    <div className="max-w-2xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-medium">Make a suggestion</h2>
