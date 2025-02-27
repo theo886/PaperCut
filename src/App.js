@@ -536,12 +536,6 @@ function AppContent() {
                     suggestion={suggestion}
                     onClick={() => viewSuggestion(suggestion.id)}
                     onVote={() => voteSuggestion(suggestion.id)}
-                    onDelete={deleteSuggestion}
-                    onMerge={prepareMergeSuggestion}
-                    onLock={lockSuggestion}
-                    onPin={pinSuggestion}
-                    currentUser={userInfo}
-                    isAdmin={userInfo.isAdmin}
                   />
                 ))}
                 
