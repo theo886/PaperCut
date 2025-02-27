@@ -1,18 +1,46 @@
 import React, { useState } from 'react';
 import { X, UserX, Loader2 } from 'lucide-react';
 import FileUploader, { AttachmentList } from './FileUploader';
+import MultiSelectDropdown from './MultiSelectDropdown';
+import SimilarPostsDropdown from './SimilarPostsDropdown';
 
-const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => {
+const SuggestionForm = ({ 
+  onSubmit, 
+  onCancel, 
+  anonymousMode, 
+  isSubmitting,
+  existingSuggestions = [], // Add this prop
+  onViewSuggestion // Add this prop
+}) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   // Visibility feature removed
   const [submitAnonymously, setSubmitAnonymously] = useState(anonymousMode);
   const [attachments, setAttachments] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const departmentOptions = [
+    'Accounting',
+    'Admin',
+    'CTT',
+    'EHS',
+    'Engineering',
+    'Facilities',
+    'Finance',
+    'HR',
+    'IT',
+    'Legal',
+    'Manufacturing',
+    'PM',
+    'Purchasing',
+    'Sales'
+  ];
   
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && description.trim() && !isSubmitting) {
-      onSubmit(title, description, submitAnonymously, attachments);
+      onSubmit(title, description, submitAnonymously, attachments, departments);
     }
   };
   
@@ -46,9 +74,17 @@ const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => 
               className="w-full border rounded-md p-2"
               placeholder="A short, descriptive title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setSearchTerm(e.target.value);
+              }}
               required
               disabled={isSubmitting}
+            />
+            <SimilarPostsDropdown 
+              suggestions={existingSuggestions}
+              searchTerm={searchTerm}
+              onSuggestionClick={onViewSuggestion}
             />
           </div>
           
@@ -63,6 +99,15 @@ const SuggestionForm = ({ onSubmit, onCancel, anonymousMode, isSubmitting }) => 
               required
               disabled={isSubmitting}
             ></textarea>
+          </div>
+          
+          <div className="mb-4">
+            <MultiSelectDropdown
+              options={departmentOptions}
+              selectedValues={departments}
+              onChange={setDepartments}
+              label="Departments"
+            />
           </div>
           
           <div className="flex items-center mb-6">

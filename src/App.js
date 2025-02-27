@@ -272,14 +272,15 @@ function AppContent() {
   };
 
   // Create a new suggestion
-  const createSuggestion = async (title, description, isAnonymous, attachments = []) => {
+  const createSuggestion = async (title, description, isAnonymous, attachments = [], departments = []) => {
     try {
       setLoading(true);
       const suggestionData = {
         title,
         description,
         isAnonymous,
-        attachments
+        attachments,
+        departments
       };
       
       const newSuggestion = await apiService.createSuggestion(suggestionData);
@@ -365,6 +366,11 @@ function AppContent() {
             onCancel={() => setView('list')}
             anonymousMode={anonymousMode}
             isSubmitting={loading}
+            existingSuggestions={suggestions} // Add this prop
+            onViewSuggestion={(id) => {       // Add this prop
+              setView('list');
+              setTimeout(() => viewSuggestion(id), 100);
+            }}
           />
         </div>
       );
