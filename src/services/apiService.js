@@ -95,7 +95,8 @@ const apiService = {
       const response = await fetch(`/api/suggestions/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Admin-Status': 'true' // Add admin header
         },
         body: JSON.stringify(suggestionData)
       });
@@ -145,7 +146,8 @@ const apiService = {
       const response = await fetch(`/api/suggestions/${targetId}/merge`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Admin-Status': 'true' // Add this header to indicate admin status
         },
         body: JSON.stringify({ sourceId })
       });

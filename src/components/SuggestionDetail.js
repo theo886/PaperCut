@@ -92,7 +92,7 @@ const SuggestionDetail = ({
             <h4 className="text-sm text-gray-500 mb-1">Status</h4>
             {isAdmin ? (
               <select 
-                className="block w-full p-2 border rounded-md text-sm"
+                className="block w-48 p-2 border rounded-md text-sm"
                 value={suggestion.status}
                 onChange={(e) => onUpdateStatus(e.target.value)}
               >
@@ -145,7 +145,7 @@ const SuggestionDetail = ({
                   <div>
                     <label className="block text-xs text-gray-500">Effort (1-5, lower is easier)</label>
                     <select 
-                      className="block w-full p-2 border rounded-md text-sm" 
+                      className="block w-48 p-2 border rounded-md text-sm" 
                       value={effortScore}
                       onChange={(e) => setEffortScore(parseInt(e.target.value))}
                     >
@@ -160,7 +160,7 @@ const SuggestionDetail = ({
                   <div>
                     <label className="block text-xs text-gray-500">Impact (1-5, higher is better)</label>
                     <select 
-                      className="block w-full p-2 border rounded-md text-sm"
+                      className="block w-48 p-2 border rounded-md text-sm"
                       value={impactScore}
                       onChange={(e) => setImpactScore(parseInt(e.target.value))}
                     >

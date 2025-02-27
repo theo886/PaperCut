@@ -33,10 +33,9 @@ export const formatUserName = (userEmail) => {
   }
   
   // Extract name from email address
-  // Format could be firstname.lastname@domain.com or username@domain.com
   const namePart = userEmail.split('@')[0];
   
-  // Check for common email delimiters
+  // Try to detect format and intelligently parse
   if (namePart.includes('.')) {
     // Handle firstname.lastname format
     return namePart

@@ -10,20 +10,29 @@ const authService = {
       const payload = await response.json();
       const { clientPrincipal } = payload;
       
-      // Log the user object to see its structure
-      console.log("User auth data:", clientPrincipal);
+      // Enhanced logging to see the full structure
+      console.log("Full auth payload:", payload);
+      console.log("Client principal data:", clientPrincipal);
       
       // Add display name if not present (for easier reference in UI)
       if (clientPrincipal && clientPrincipal.userDetails) {
-        clientPrincipal.displayName = clientPrincipal.userDetails;
-        
-        // If user details contains an email, try to extract a better name
-        if (clientPrincipal.userDetails.includes('@')) {
-          const namePart = clientPrincipal.userDetails.split('@')[0];
-          // Format: replace dots, underscores, or hyphens with spaces and capitalize
-          clientPrincipal.displayName = namePart
-            .replace(/[._-]/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase());
+        // First, check if there's a name field we're not using
+        if (clientPrincipal.name) {
+          clientPrincipal.displayName = clientPrincipal.name;
+        } else if (clientPrincipal.fullName) {
+          clientPrincipal.displayName = clientPrincipal.fullName;
+        } else {
+          // Fall back to email parsing logic
+          clientPrincipal.displayName = clientPrincipal.userDetails;
+          
+          // If user details contains an email, try to extract a better name
+          if (clientPrincipal.userDetails.includes('@')) {
+            const namePart = clientPrincipal.userDetails.split('@')[0];
+            // Format: replace dots, underscores, or hyphens with spaces and capitalize
+            clientPrincipal.displayName = namePart
+              .replace(/[._-]/g, ' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+          }
         }
       }
       

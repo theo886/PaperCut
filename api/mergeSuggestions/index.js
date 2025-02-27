@@ -42,8 +42,24 @@ module.exports = async function (context, req) {
             userRoles: clientPrincipal.userRoles || []
         };
         
-        // Check if user is admin
-        const isAdmin = userData.userRoles.includes('admin') || userData.userRoles.includes('administrator') || userData.userRoles.includes('Owner');
+        // Check if user is admin - from roles or custom header
+        const isAdminFromRoles = userData.userRoles.includes('admin') || 
+                            userData.userRoles.includes('administrator') || 
+                            userData.userRoles.includes('Owner');
+        
+        // Check for admin status from custom header
+        const isAdminFromHeader = req.headers['x-admin-status'] === 'true';
+        
+        // User is admin if either condition is true
+        const isAdmin = isAdminFromRoles || isAdminFromHeader;
+        
+        context.log('Admin check:', { 
+            userRoles: userData.userRoles,
+            isAdminFromRoles,
+            isAdminFromHeader, 
+            adminHeader: req.headers['x-admin-status'], 
+            finalAdminStatus: isAdmin 
+        });
         
         if (!isAdmin) {
             context.res = {

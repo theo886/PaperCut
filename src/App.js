@@ -241,6 +241,9 @@ function AppContent() {
     try {
       setLoading(true);
       
+      console.log('Attempting to merge:', { targetId, sourceId });
+      console.log('Current user admin status:', userInfo.isAdmin);
+      
       const result = await apiService.mergeSuggestions(targetId, sourceId);
       
       // Update suggestions list
