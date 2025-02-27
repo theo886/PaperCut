@@ -1,4 +1,5 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { DefaultAzureCredential } = require('@azure/identity');
 
 module.exports = async function (context, req) {
     context.log('Processing file upload request');
@@ -14,28 +15,61 @@ module.exports = async function (context, req) {
             return;
         }
 
-        // Get storage configuration from environment variables
-        const connectionString = process.env.STORAGE_CONNECTION_STRING;
+        // Get storage account info from environment variables
+        const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
         const containerName = process.env.STORAGE_CONTAINER_NAME || "papercut-uploads";
+        
+        // Alternative: try to use connection string if available
+        const connectionString = process.env.STORAGE_CONNECTION_STRING;
 
-        if (!connectionString) {
-            context.log.error('Missing storage connection string');
+        let blobServiceClient;
+
+        // First try connection string if available
+        if (connectionString) {
+            blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+        } 
+        // Next try managed identity if storage account name is available
+        else if (storageAccountName) {
+            const url = `https://${storageAccountName}.blob.core.windows.net`;
+            const credential = new DefaultAzureCredential();
+            blobServiceClient = new BlobServiceClient(url, credential);
+        } 
+        // If neither is available, log detailed error
+        else {
+            context.log.error('Storage configuration details:');
+            context.log.error('STORAGE_CONNECTION_STRING: ' + (connectionString ? 'present' : 'missing'));
+            context.log.error('AZURE_STORAGE_ACCOUNT_NAME: ' + (storageAccountName ? 'present' : 'missing'));
+            
+            // For debugging, log all environment variables (be careful with sensitive info)
+            context.log.error('Available environment variables:');
+            Object.keys(process.env).forEach(key => {
+                context.log.error(`${key}: ${key.includes('SECRET') || key.includes('KEY') ? '[REDACTED]' : 'present'}`);
+            });
+            
             context.res = {
                 status: 500,
-                body: { message: "Storage configuration missing" }
+                body: { message: "Storage configuration missing. Please set STORAGE_CONNECTION_STRING or AZURE_STORAGE_ACCOUNT_NAME environment variable." }
             };
             return;
         }
 
-        // Create unique filename to avoid collisions
-        const blobName = `${Date.now()}-${fileData.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        
-        // Connect to Azure Blob Storage
-        const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+        // Create container client
         const containerClient = blobServiceClient.getContainerClient(containerName);
         
-        // Create container if it doesn't exist
-        await containerClient.createIfNotExists({ access: 'blob' });
+        // Create unique filename
+        const blobName = `${Date.now()}-${fileData.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        
+        try {
+            // Create container if it doesn't exist
+            await containerClient.createIfNotExists({ access: 'blob' });
+        } catch (containerError) {
+            context.log.error('Error creating container:', containerError);
+            context.res = {
+                status: 500,
+                body: { message: `Error creating container: ${containerError.message}` }
+            };
+            return;
+        }
         
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
@@ -52,10 +86,7 @@ module.exports = async function (context, req) {
         // Get URL to the uploaded file
         const url = blockBlobClient.url;
 
-        // Check if file is an image based on content type
-        const isImage = fileData.contentType.startsWith('image/');
-
-        // Return success response with file info
+        // Return success response
         context.res = {
             status: 200,
             body: {
@@ -63,7 +94,7 @@ module.exports = async function (context, req) {
                 filename: fileData.name,
                 contentType: fileData.contentType,
                 size: fileData.size,
-                isImage: isImage
+                isImage: fileData.contentType.startsWith('image/')
             }
         };
     } catch (error) {
