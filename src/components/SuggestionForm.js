@@ -1,20 +1,128 @@
-import React, { useState } from 'react';
-import { X, UserX, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, UserX, Loader2, ChevronDown, Check } from 'lucide-react';
 import FileUploader, { AttachmentList } from './FileUploader';
-import MultiSelectDropdown from './MultiSelectDropdown';
-import SimilarPostsDropdown from './SimilarPostsDropdown';
 
+// MultiSelectDropdown component inside the same file
+const MultiSelectDropdown = ({ options, selectedValues, onChange, label }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  const toggleOption = (option) => {
+    if (selectedValues.includes(option)) {
+      onChange(selectedValues.filter(value => value !== option));
+    } else {
+      onChange([...selectedValues, option]);
+    }
+  };
+  
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <label className="block text-gray-700 mb-2">{label}</label>
+      <div
+        className="border rounded-md p-2 flex flex-wrap items-center cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedValues.length === 0 ? (
+          <span className="text-gray-500">Select departments...</span>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {selectedValues.map(value => (
+              <div 
+                key={value} 
+                className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-md text-sm flex items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleOption(value);
+                }}
+              >
+                {value}
+                <X size={14} className="ml-1 cursor-pointer" />
+              </div>
+            ))}
+          </div>
+        )}
+        <ChevronDown size={16} className="ml-auto" />
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {options.map(option => (
+            <div 
+              key={option}
+              className="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+              onClick={() => toggleOption(option)}
+            >
+              <div className={`w-4 h-4 border rounded mr-2 flex items-center justify-center ${selectedValues.includes(option) ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}>
+                {selectedValues.includes(option) && <Check size={12} className="text-white" />}
+              </div>
+              {option}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// SimilarPostsDropdown component inside the same file
+const SimilarPostsDropdown = ({ suggestions, searchTerm, onSuggestionClick }) => {
+  if (!searchTerm || searchTerm.length < 2) return null;
+
+  // Filter suggestions based on the current search term (last word typed)
+  const words = searchTerm.trim().split(/\s+/);
+  const currentWord = words[words.length - 1].toLowerCase();
+  
+  // Only filter if the current word has at least 2 characters
+  if (currentWord.length < 2) return null;
+  
+  const matchingSuggestions = suggestions.filter(suggestion => 
+    suggestion.title.toLowerCase().includes(currentWord)
+  );
+  
+  if (matchingSuggestions.length === 0) return null;
+  
+  return (
+    <div className="mt-1 mb-4">
+      <h4 className="text-sm text-gray-600 mb-2">Posts that may already contain your suggestion</h4>
+      <div className="border rounded-md overflow-hidden">
+        {matchingSuggestions.map(suggestion => (
+          <div 
+            key={suggestion.id}
+            className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+            onClick={() => onSuggestionClick(suggestion.id)}
+          >
+            <span className="text-indigo-600">{suggestion.title}</span> #{suggestion.id}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Main SuggestionForm component with updates
 const SuggestionForm = ({ 
   onSubmit, 
   onCancel, 
   anonymousMode, 
   isSubmitting,
-  existingSuggestions = [], // Add this prop
-  onViewSuggestion // Add this prop
+  existingSuggestions = [],
+  onViewSuggestion
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Visibility feature removed
   const [submitAnonymously, setSubmitAnonymously] = useState(anonymousMode);
   const [attachments, setAttachments] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -81,12 +189,13 @@ const SuggestionForm = ({
               required
               disabled={isSubmitting}
             />
-            <SimilarPostsDropdown 
-              suggestions={existingSuggestions}
-              searchTerm={searchTerm}
-              onSuggestionClick={onViewSuggestion}
-            />
           </div>
+          
+          <SimilarPostsDropdown 
+            suggestions={existingSuggestions}
+            searchTerm={searchTerm}
+            onSuggestionClick={onViewSuggestion}
+          />
           
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Details</label>
