@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 
 // Cache for the admin emails
-let adminEmails = null;
+let adminEmailsCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 3600000; // 1 hour
 
 const adminService = {
   // Load admin emails from text file
   loadAdminEmails: async () => {
-    try {
-      if (adminEmails !== null) {
-        return adminEmails;
-      }
+    const now = Date.now();
 
+    if (adminEmailsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+      return adminEmailsCache;
+    }
+
+    try {
       const response = await fetch('/adminEmails.txt');
       if (!response.ok) {
         console.error('Failed to load admin emails file');
@@ -18,12 +22,13 @@ const adminService = {
       }
 
       const text = await response.text();
-      adminEmails = text
+      adminEmailsCache = text
         .split('\n')
         .map(email => email.trim())
         .filter(email => email && !email.startsWith('#')); // Skip empty lines and comments
       
-      return adminEmails;
+      cacheTimestamp = now;
+      return adminEmailsCache;
     } catch (error) {
       console.error('Error loading admin emails:', error);
       return [];

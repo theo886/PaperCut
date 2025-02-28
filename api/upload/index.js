@@ -36,15 +36,7 @@ module.exports = async function (context, req) {
         } 
         // If neither is available, log detailed error
         else {
-            context.log.error('Storage configuration details:');
-            context.log.error('STORAGE_CONNECTION_STRING: ' + (connectionString ? 'present' : 'missing'));
-            context.log.error('AZURE_STORAGE_ACCOUNT_NAME: ' + (storageAccountName ? 'present' : 'missing'));
-            
-            // For debugging, log all environment variables (be careful with sensitive info)
-            context.log.error('Available environment variables:');
-            Object.keys(process.env).forEach(key => {
-                context.log.error(`${key}: ${key.includes('SECRET') || key.includes('KEY') ? '[REDACTED]' : 'present'}`);
-            });
+            context.log.error('Storage configuration missing. Please set STORAGE_CONNECTION_STRING or AZURE_STORAGE_ACCOUNT_NAME environment variable.');
             
             context.res = {
                 status: 500,

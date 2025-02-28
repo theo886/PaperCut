@@ -2,6 +2,10 @@ const { getContainer } = require('../shared/cosmosClient');
 
 module.exports = async function (context, req) {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
+        const offset = (page - 1) * pageSize;
+
         // Get the current user information from the request
         const clientPrincipal = req.headers['x-ms-client-principal']
             ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
@@ -13,7 +17,11 @@ module.exports = async function (context, req) {
         
         // Query all items in the container
         const querySpec = {
-            query: "SELECT * FROM c"
+            query: "SELECT * FROM c OFFSET @offset LIMIT @limit",
+            parameters: [
+                { name: "@offset", value: offset },
+                { name: "@limit", value: pageSize }
+            ]
         };
         
         const { resources } = await container.items.query(querySpec).fetchAll();

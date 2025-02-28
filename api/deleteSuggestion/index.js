@@ -1,4 +1,6 @@
 const { CosmosClient } = require("@azure/cosmos");
+const { authenticate, authorizeAdmin } = require("../shared/authMiddleware");
+const errorHandler = require("../shared/errorHandler");
 
 module.exports = async function (context, req) {
     try {
@@ -12,53 +14,9 @@ module.exports = async function (context, req) {
             return;
         }
         
-        // Get the current user information from the request
-        const clientPrincipal = req.headers['x-ms-client-principal']
-            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
-            : null;
-            
-        if (!clientPrincipal) {
-            context.res = {
-                status: 401,
-                body: { message: "Authentication required" }
-            };
-            return;
-        }
+        const userData = authenticate(req);
+        authorizeAdmin(userData, req);
         
-        const userData = {
-            userId: clientPrincipal.userId,
-            userDetails: clientPrincipal.userDetails,
-            userRoles: clientPrincipal.userRoles || []
-        };
-        
-        // Check if user is admin - from roles or custom header
-        const isAdminFromRoles = userData.userRoles.includes('admin') || 
-                           userData.userRoles.includes('administrator') || 
-                           userData.userRoles.includes('Owner');
-        
-        // Check for admin status from custom header
-        const isAdminFromHeader = req.headers['x-admin-status'] === 'true';
-        
-        // User is admin if either condition is true
-        const isAdmin = isAdminFromRoles || isAdminFromHeader;
-        
-        context.log('Admin check in deleteSuggestion:', { 
-            userRoles: userData.userRoles,
-            isAdminFromRoles,
-            isAdminFromHeader, 
-            adminHeader: req.headers['x-admin-status'], 
-            finalAdminStatus: isAdmin 
-        });
-        
-        if (!isAdmin) {
-            context.res = {
-                status: 403,
-                body: { message: "Only administrators can delete suggestions" }
-            };
-            return;
-        }
-        
-        // Connect to Cosmos DB directly, similar to SuggestionLock implementation
         const endpoint = process.env.COSMOS_ENDPOINT;
         const key = process.env.COSMOS_KEY;
         const databaseId = process.env.COSMOS_DATABASE_ID;
@@ -93,13 +51,6 @@ module.exports = async function (context, req) {
             body: { message: 'Suggestion deleted successfully' }
         };
     } catch (error) {
-        context.log.error(`Error deleting suggestion with id ${context.bindingData.id}:`, error);
-        context.res = {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: { message: 'Error deleting suggestion', error: error.message }
-        };
+        errorHandler(context, error, 'Error deleting suggestion');
     }
 }; 
