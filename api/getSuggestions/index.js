@@ -11,6 +11,9 @@ module.exports = async function (context, req) {
             ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
             : null;
             
+        // Log the complete client principal object to see what's available
+        context.log('Complete client principal data:', JSON.stringify(clientPrincipal, null, 2));
+            
         const userId = clientPrincipal?.userId || null;
         
         const container = await getContainer();
