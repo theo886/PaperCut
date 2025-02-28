@@ -1,7 +1,8 @@
 const { getContainer } = require('../shared/cosmosClient');
 const { v4: uuidv4 } = require('uuid');
+const { authenticate } = require('../shared/authMiddleware');
 
-// Helper function to format display names from emails
+// Helper function for formatting display names from emails (as fallback)
 function formatDisplayName(email) {
     if (!email) return '';
     
@@ -21,26 +22,19 @@ function formatDisplayName(email) {
 
 module.exports = async function (context, req) {
     try {
-        // Get the current user information from the request
-        const clientPrincipal = req.headers['x-ms-client-principal']
-            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
-            : null;
-
-        if (!clientPrincipal) {
+        // Get the current user information from the request using the authenticate middleware
+        let userData;
+        try {
+            userData = authenticate(req);
+        } catch (error) {
             context.res = {
-                status: 401,
-                body: { message: "Authentication required" }
+                status: error.status || 401,
+                body: { message: error.message || "Authentication required" }
             };
             return;
         }
 
-        const userData = {
-            userId: clientPrincipal.userId,
-            userDetails: clientPrincipal.userDetails,
-            userRoles: clientPrincipal.userRoles || []
-        };
-
-        const { title, description, isAnonymous, attachments } = req.body;
+        const { title, description, isAnonymous, attachments, departments } = req.body;
 
         if (!title || !description) {
             context.res = {
@@ -50,6 +44,15 @@ module.exports = async function (context, req) {
             return;
         }
 
+        // Determine the author name - use fullName if available, otherwise fallback to formatted email
+        const authorName = isAnonymous ? "Anonymous" : 
+                          (userData.fullName || formatDisplayName(userData.userDetails));
+        
+        // Get initial for avatar - use first name's initial when available
+        const authorInitial = isAnonymous ? "?" : 
+                             (userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
+                             authorName.charAt(0).toUpperCase());
+
         const timestamp = new Date().toISOString();
         const container = await getContainer();
 
@@ -58,17 +61,16 @@ module.exports = async function (context, req) {
             id: uuidv4(),
             title,
             description,
-            author: isAnonymous ? "Anonymous" : formatDisplayName(userData.userDetails),
-            authorInitial: isAnonymous ? "?" : formatDisplayName(userData.userDetails).charAt(0).toUpperCase(),
+            author: authorName,
+            authorInitial: authorInitial,
             authorId: isAnonymous ? null : userData.userId,
             isAnonymous,
             status: 'New',
-            departments: [],
+            departments: departments || [],
             votes: 0,
             comments: [],
             activity: [],
             timestamp,
-            // Visibility feature removed
             effortScore: 0,
             impactScore: 0,
             priorityScore: 0,

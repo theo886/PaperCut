@@ -1,40 +1,52 @@
 const { CosmosClient } = require("@azure/cosmos");
+const { authenticate } = require('../shared/authMiddleware');
 
 module.exports = async function (context, req) {
-    // Check for authentication
-    if (!req.headers["x-ms-client-principal"]) {
-        context.res = {
-            status: 401,
-            body: { message: "Authentication required" }
-        };
-        return;
-    }
-
-    // Parse the client principal
-    const header = req.headers["x-ms-client-principal"];
-    const principal = JSON.parse(Buffer.from(header, "base64").toString("utf8"));
-    const userEmail = principal.userDetails;
-    const userId = principal.userId;
-
-    // Check if request has admin header for admin-only actions
-    const isAdmin = req.headers["x-admin-status"] === "true";
-    
-    // Only admins can lock/unlock
-    if (!isAdmin) {
-        context.res = {
-            status: 403,
-            body: { message: "Permission denied: Admin rights required" }
-        };
-        return;
-    }
-
+    // Get the suggestion ID from route parameters
     const suggestionId = context.bindingData.id;
+    
+    // Get lock status from body
     const { isLocked } = req.body;
-
+    
+    if (suggestionId === undefined) {
+        context.res = {
+            status: 400,
+            body: { message: "Suggestion ID is required" }
+        };
+        return;
+    }
+    
     if (isLocked === undefined) {
         context.res = {
             status: 400,
-            body: { message: "Request must include isLocked property" }
+            body: { message: "isLocked status is required" }
+        };
+        return;
+    }
+    
+    // Get the current user information from the request
+    let userData;
+    try {
+        userData = authenticate(req);
+        context.log('User authenticated:', userData);
+    } catch (error) {
+        context.res = {
+            status: error.status || 401,
+            body: { message: error.message || "Authentication required" }
+        };
+        return;
+    }
+    
+    // Check if user is admin - from roles or custom header
+    const isAdmin = userData.userRoles.includes('admin') || 
+                   userData.userRoles.includes('administrator') || 
+                   userData.userRoles.includes('Owner') ||
+                   req.headers['x-admin-status'] === 'true';
+    
+    if (!isAdmin) {
+        context.res = {
+            status: 403,
+            body: { message: "Only administrators can lock/unlock suggestions" }
         };
         return;
     }
@@ -75,14 +87,20 @@ module.exports = async function (context, req) {
             suggestion.activity = [];
         }
         
+        // Get user's display name - use fullName if available, otherwise fallback to userDetails
+        const displayName = userData.fullName || userData.displayName || userData.userDetails;
+        // Get user's initial - prefer first name initial if available
+        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
+                         displayName.charAt(0).toUpperCase();
+        
         suggestion.activity.push({
             id: Date.now().toString(),
             type: 'lock',
             status: isLocked ? 'locked' : 'unlocked',
             timestamp: new Date().toISOString(),
-            author: principal.userDetails,
-            authorInitial: principal.userDetails.charAt(0).toUpperCase(),
-            authorId: principal.userId
+            author: displayName,
+            authorInitial: userInitial,
+            authorId: userData.userId
         });
 
         // Save the updated suggestion
@@ -93,10 +111,10 @@ module.exports = async function (context, req) {
             body: updatedSuggestion
         };
     } catch (error) {
-        context.log.error(`Error locking/unlocking suggestion: ${error.message}`);
+        context.log.error(`Error updating lock status for suggestion ${suggestionId}:`, error);
         context.res = {
             status: 500,
-            body: { message: `Error updating suggestion: ${error.message}` }
+            body: { message: 'Error updating lock status', error: error.message }
         };
     }
 };

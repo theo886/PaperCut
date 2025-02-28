@@ -1,65 +1,43 @@
 const { getContainer } = require('../shared/cosmosClient');
 const { v4: uuidv4 } = require('uuid');
+const { authenticate } = require('../shared/authMiddleware');
 
 module.exports = async function (context, req) {
     try {
-        const targetId = context.bindingData.targetId;
+        // Extract the target and source IDs
+        const { targetId, sourceId } = req.body;
         
-        if (!targetId) {
+        if (!targetId || !sourceId) {
             context.res = {
                 status: 400,
-                body: { message: "Target suggestion ID is required" }
-            };
-            return;
-        }
-        
-        const { sourceId } = req.body;
-        
-        if (!sourceId) {
-            context.res = {
-                status: 400,
-                body: { message: "Source suggestion ID is required in the request body" }
+                body: { message: "Both targetId and sourceId are required" }
             };
             return;
         }
         
         // Get the current user information from the request
-        const clientPrincipal = req.headers['x-ms-client-principal']
-            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
-            : null;
-            
-        if (!clientPrincipal) {
+        let userData;
+        try {
+            userData = authenticate(req);
+            context.log('User authenticated:', userData);
+        } catch (error) {
             context.res = {
-                status: 401,
-                body: { message: "Authentication required" }
+                status: error.status || 401,
+                body: { message: error.message || "Authentication required" }
             };
             return;
         }
         
-        const userData = {
-            userId: clientPrincipal.userId,
-            userDetails: clientPrincipal.userDetails,
-            userRoles: clientPrincipal.userRoles || []
-        };
-        
         // Check if user is admin - from roles or custom header
         const isAdminFromRoles = userData.userRoles.includes('admin') || 
-                            userData.userRoles.includes('administrator') || 
-                            userData.userRoles.includes('Owner');
+                          userData.userRoles.includes('administrator') || 
+                          userData.userRoles.includes('Owner');
         
         // Check for admin status from custom header
         const isAdminFromHeader = req.headers['x-admin-status'] === 'true';
         
         // User is admin if either condition is true
         const isAdmin = isAdminFromRoles || isAdminFromHeader;
-        
-        context.log('Admin check:', { 
-            userRoles: userData.userRoles,
-            isAdminFromRoles,
-            isAdminFromHeader, 
-            adminHeader: req.headers['x-admin-status'], 
-            finalAdminStatus: isAdmin 
-        });
         
         if (!isAdmin) {
             context.res = {
@@ -71,31 +49,20 @@ module.exports = async function (context, req) {
         
         const container = await getContainer();
         
-        // Get both suggestions
-        const getTargetSuggestion = container.items.query({
+        // Get the source suggestion
+        const sourceQuery = {
             query: "SELECT * FROM c WHERE c.id = @id",
-            parameters: [{ name: "@id", value: targetId }]
-        }).fetchAll();
+            parameters: [
+                {
+                    name: "@id",
+                    value: sourceId
+                }
+            ]
+        };
         
-        const getSourceSuggestion = container.items.query({
-            query: "SELECT * FROM c WHERE c.id = @id",
-            parameters: [{ name: "@id", value: sourceId }]
-        }).fetchAll();
+        const { resources: sourceResources } = await container.items.query(sourceQuery).fetchAll();
         
-        const [targetResult, sourceResult] = await Promise.all([getTargetSuggestion, getSourceSuggestion]);
-        
-        const targetSuggestions = targetResult.resources;
-        const sourceSuggestions = sourceResult.resources;
-        
-        if (targetSuggestions.length === 0) {
-            context.res = {
-                status: 404,
-                body: { message: `Target suggestion with id ${targetId} not found` }
-            };
-            return;
-        }
-        
-        if (sourceSuggestions.length === 0) {
+        if (sourceResources.length === 0) {
             context.res = {
                 status: 404,
                 body: { message: `Source suggestion with id ${sourceId} not found` }
@@ -103,8 +70,36 @@ module.exports = async function (context, req) {
             return;
         }
         
-        const targetSuggestion = targetSuggestions[0];
-        const sourceSuggestion = sourceSuggestions[0];
+        const sourceSuggestion = sourceResources[0];
+        
+        // Get the target suggestion
+        const targetQuery = {
+            query: "SELECT * FROM c WHERE c.id = @id",
+            parameters: [
+                {
+                    name: "@id",
+                    value: targetId
+                }
+            ]
+        };
+        
+        const { resources: targetResources } = await container.items.query(targetQuery).fetchAll();
+        
+        if (targetResources.length === 0) {
+            context.res = {
+                status: 404,
+                body: { message: `Target suggestion with id ${targetId} not found` }
+            };
+            return;
+        }
+        
+        const targetSuggestion = targetResources[0];
+        
+        // Get user's display name - use fullName if available, otherwise fallback to userDetails
+        const displayName = userData.fullName || userData.displayName || userData.userDetails;
+        // Get user's initial - prefer first name initial if available
+        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
+                         displayName.charAt(0).toUpperCase();
         
         // Prepare the merge action activity entry
         const mergeActivity = {
@@ -113,8 +108,8 @@ module.exports = async function (context, req) {
             sourceId: sourceId,
             sourceTitle: sourceSuggestion.title,
             timestamp: new Date().toISOString(),
-            author: userData.userDetails,
-            authorInitial: userData.userDetails.charAt(0).toUpperCase(),
+            author: displayName,
+            authorInitial: userInitial,
             authorId: userData.userId
         };
         
@@ -172,13 +167,12 @@ module.exports = async function (context, req) {
                 'Content-Type': 'application/json'
             },
             body: {
-                message: 'Suggestions merged successfully',
                 target: updatedTargetResource,
                 source: updatedSourceResource
             }
         };
     } catch (error) {
-        context.log.error(`Error merging suggestions:`, error);
+        context.log.error('Error merging suggestions:', error);
         context.res = {
             status: 500,
             headers: {

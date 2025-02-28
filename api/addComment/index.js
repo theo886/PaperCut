@@ -27,15 +27,16 @@ module.exports = async function (context, req) {
         if (!id) {
             context.res = {
                 status: 400,
-                body: { message: "Suggestion ID parameter is required" }
+                body: { message: "Suggestion ID is required" }
             };
             return;
         }
         
-        // Get the current user information from the request using authenticate middleware
+        // Get the current user information from the request
         let userData;
         try {
             userData = authenticate(req);
+            context.log('User authenticated:', userData);
         } catch (error) {
             context.res = {
                 status: error.status || 401,
@@ -53,6 +54,12 @@ module.exports = async function (context, req) {
             };
             return;
         }
+        
+        // Get user's display name - use fullName if available, otherwise fallback to userDetails
+        const displayName = userData.fullName || userData.displayName || userData.userDetails;
+        // Get user's initial - prefer first name initial if available
+        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
+                          displayName.charAt(0).toUpperCase();
         
         const container = await getContainer();
         
@@ -79,7 +86,7 @@ module.exports = async function (context, req) {
         
         const suggestion = resources[0];
         
-        // Check if the suggestion is locked and reject comments if it is
+        // Check if suggestion is locked
         if (suggestion.isLocked) {
             context.res = {
                 status: 403,
@@ -88,25 +95,17 @@ module.exports = async function (context, req) {
             return;
         }
         
-        // Determine the author name - use fullName if available, otherwise fallback to formatted email
-        const authorName = isAnonymous ? "Anonymous" : 
-                          (userData.fullName || formatDisplayName(userData.userDetails));
-        
-        // Get initial for avatar
-        const authorInitial = isAnonymous ? "?" : 
-                             (userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
-                             authorName.charAt(0).toUpperCase());
-        
         // Create the new comment
         const newComment = {
             id: uuidv4(),
-            author: authorName,
-            authorInitial: authorInitial,
+            text,
+            author: isAnonymous ? "Anonymous" : displayName,
+            authorInitial: isAnonymous ? "?" : userInitial,
             authorId: isAnonymous ? null : userData.userId,
             isAnonymous: isAnonymous || false,
-            text,
             timestamp: new Date().toISOString(),
             likes: 0,
+            likedBy: [],
             attachments: attachments || []
         };
         
@@ -114,17 +113,17 @@ module.exports = async function (context, req) {
         suggestion.comments.push(newComment);
         
         // Update the suggestion in CosmosDB
-        const { resource: updatedSuggestion } = await container.item(id).replace(suggestion);
+        const { resource: updatedItem } = await container.item(id).replace(suggestion);
         
         context.res = {
             status: 201,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: newComment
+            body: updatedItem
         };
     } catch (error) {
-        context.log.error(`Error adding comment to suggestion with id ${context.bindingData.id}:`, error);
+        context.log.error(`Error adding comment to suggestion ${context.bindingData.id}:`, error);
         context.res = {
             status: 500,
             headers: {

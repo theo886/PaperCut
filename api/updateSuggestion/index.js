@@ -1,4 +1,5 @@
 const { getContainer } = require('../shared/cosmosClient');
+const { authenticate } = require('../shared/authMiddleware');
 
 module.exports = async function (context, req) {
     try {
@@ -12,24 +13,18 @@ module.exports = async function (context, req) {
             return;
         }
         
-        // Get the current user information from the request
-        const clientPrincipal = req.headers['x-ms-client-principal']
-            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
-            : null;
-            
-        if (!clientPrincipal) {
+        // Get the current user information from the request using the authenticate middleware
+        let userData;
+        try {
+            userData = authenticate(req);
+            context.log('User authenticated:', userData);
+        } catch (error) {
             context.res = {
-                status: 401,
-                body: { message: "Authentication required" }
+                status: error.status || 401,
+                body: { message: error.message || "Authentication required" }
             };
             return;
         }
-        
-        const userData = {
-            userId: clientPrincipal.userId,
-            userDetails: clientPrincipal.userDetails,
-            userRoles: clientPrincipal.userRoles || []
-        };
         
         // Check if user is admin - from roles or custom header
         const isAdminFromRoles = userData.userRoles.includes('admin') || 
@@ -89,6 +84,12 @@ module.exports = async function (context, req) {
         // Merge updated fields with existing suggestion
         // If user is not admin, only certain fields can be updated
         const updatedSuggestion = { ...existingSuggestion };
+
+        // Get user's display name - use fullName if available, otherwise fallback to userDetails
+        const displayName = userData.fullName || userData.displayName || userData.userDetails;
+        // Get user's initial - prefer first name initial if available
+        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
+                          displayName.charAt(0).toUpperCase();
         
         if (isAdmin) {
             // Admins can update all fields
@@ -100,8 +101,9 @@ module.exports = async function (context, req) {
                     from: existingSuggestion.status,
                     to: updatedData.status,
                     timestamp: new Date().toISOString(),
-                    author: userData.userDetails,
-                    authorInitial: userData.userDetails.charAt(0).toUpperCase()
+                    author: displayName,
+                    authorInitial: userInitial,
+                    authorId: userData.userId
                 };
                 updatedSuggestion.activity = [...existingSuggestion.activity, statusActivity];
                 updatedSuggestion.status = updatedData.status;
