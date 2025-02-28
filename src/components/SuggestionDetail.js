@@ -410,13 +410,24 @@ const SuggestionDetail = ({
                     />
                     Post anonymously
                   </label>
-                  <button 
-                    type="submit"
-                    className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
-                    disabled={!comment.trim() || suggestion.isLocked}
-                  >
-                    Comment
-                  </button>
+                  <div className="flex items-center">
+                    <label className="cursor-pointer mr-2">
+                      <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => handleCommentFileUploaded(e.target.files[0])}
+                        disabled={suggestion.isLocked}
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
+                      disabled={!comment.trim() || suggestion.isLocked}
+                    >
+                      Comment
+                    </button>
+                  </div>
                 </div>
                 
                 {!suggestion.isLocked && (
