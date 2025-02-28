@@ -85,6 +85,15 @@ module.exports = async function (context, req) {
         
         const suggestion = resources[0];
         
+        // Check if the suggestion is locked and reject comments if it is
+        if (suggestion.isLocked) {
+            context.res = {
+                status: 403,
+                body: { message: "This suggestion is locked and cannot receive new comments" }
+            };
+            return;
+        }
+        
         // Create the new comment
         const newComment = {
             id: uuidv4(),

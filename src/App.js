@@ -153,6 +153,15 @@ function AppContent() {
   // Add a comment to a suggestion
   const addComment = async (id, text, isAnonymous, attachments = []) => {
     try {
+      // Find the current suggestion
+      const suggestion = suggestions.find(s => s.id === id);
+      
+      // Check if the suggestion is locked
+      if (suggestion && suggestion.isLocked) {
+        alert('This suggestion is locked and cannot receive new comments.');
+        return;
+      }
+      
       setLoading(true);
       const commentData = { text, isAnonymous, attachments };
       const newComment = await apiService.addComment(id, commentData);

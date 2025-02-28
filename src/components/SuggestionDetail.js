@@ -392,14 +392,15 @@ const SuggestionDetail = ({
               </div>
               <div className="flex-grow">
                 <textarea
-                  className="w-full border rounded-md p-2 text-sm"
+                  className={`w-full border rounded-md p-2 text-sm ${suggestion.isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   rows="2"
-                  placeholder="Add a comment..."
+                  placeholder={suggestion.isLocked ? "Comments are disabled for this suggestion" : "Add a comment..."}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
+                  disabled={suggestion.isLocked}
                 ></textarea>
                 <div className="flex items-center justify-between mt-2">
-                  <label className="flex items-center text-sm text-gray-600">
+                  <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
                     <input 
                       type="checkbox" 
                       className="mr-2"
@@ -411,21 +412,25 @@ const SuggestionDetail = ({
                   </label>
                   <button 
                     type="submit"
-                    className="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm"
+                    className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
                     disabled={!comment.trim() || suggestion.isLocked}
                   >
                     Comment
                   </button>
                 </div>
                 
-                <FileUploader 
-                  onFileUploaded={handleCommentFileUploaded}
-                />
-                
-                <AttachmentList 
-                  attachments={commentAttachments}
-                  onRemove={handleRemoveCommentAttachment}
-                />
+                {!suggestion.isLocked && (
+                  <>
+                    <FileUploader 
+                      onFileUploaded={handleCommentFileUploaded}
+                    />
+                    
+                    <AttachmentList 
+                      attachments={commentAttachments}
+                      onRemove={handleRemoveCommentAttachment}
+                    />
+                  </>
+                )}
                 
                 {suggestion.isLocked && (
                   <div className="mt-2 text-sm text-red-600 flex items-center">
