@@ -50,42 +50,54 @@ module.exports = async function (context, req) {
         const database = client.database(databaseId);
         const container = database.container(containerId);
 
-        // Get the suggestion
-        const { resource: suggestion } = await container.item(suggestionId).read();
+        // Get the suggestion with proper error handling
+        try {
+            const { resource: suggestion } = await container.item(suggestionId).read();
 
-        if (!suggestion) {
+            if (!suggestion) {
+                context.res = {
+                    status: 404,
+                    body: { message: "Suggestion not found" }
+                };
+                return;
+            }
+
+            // Update the suggestion
+            suggestion.isPinned = isPinned;
+            
+            // Add to activity log
+            if (!suggestion.activity) {
+                suggestion.activity = [];
+            }
+            
+            suggestion.activity.push({
+                id: Date.now().toString(),
+                type: 'pin',
+                status: isPinned ? 'pinned' : 'unpinned',
+                timestamp: new Date().toISOString(),
+                author: principal.userDetails,
+                authorInitial: principal.userDetails.charAt(0).toUpperCase(),
+                authorId: principal.userId
+            });
+
+            // Save the updated suggestion
+            const { resource: updatedSuggestion } = await container.item(suggestionId).replace(suggestion);
+
             context.res = {
-                status: 404,
-                body: { message: "Suggestion not found" }
+                status: 200,
+                body: updatedSuggestion
             };
-            return;
+        } catch (itemError) {
+            // If the item doesn't exist, CosmosDB will throw a 404 error
+            if (itemError.code === 404) {
+                context.res = {
+                    status: 404,
+                    body: { message: `Suggestion with id ${suggestionId} not found` }
+                };
+                return;
+            }
+            throw itemError; // Re-throw for other errors
         }
-
-        // Update the suggestion
-        suggestion.isPinned = isPinned;
-        
-        // Add to activity log
-        if (!suggestion.activity) {
-            suggestion.activity = [];
-        }
-        
-        suggestion.activity.push({
-            id: Date.now().toString(),
-            type: 'pin',
-            status: isPinned ? 'pinned' : 'unpinned',
-            timestamp: new Date().toISOString(),
-            author: principal.userDetails,
-            authorInitial: principal.userDetails.charAt(0).toUpperCase(),
-            authorId: principal.userId
-        });
-
-        // Save the updated suggestion
-        const { resource: updatedSuggestion } = await container.item(suggestionId).replace(suggestion);
-
-        context.res = {
-            status: 200,
-            body: updatedSuggestion
-        };
     } catch (error) {
         context.log.error(`Error pinning/unpinning suggestion: ${error.message}`);
         context.res = {

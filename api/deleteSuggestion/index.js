@@ -1,4 +1,4 @@
-const { getContainer } = require('../shared/cosmosClient');
+const { CosmosClient } = require("@azure/cosmos");
 
 module.exports = async function (context, req) {
     try {
@@ -58,39 +58,49 @@ module.exports = async function (context, req) {
             return;
         }
         
-        const container = await getContainer();
+        // Connect to Cosmos DB directly, similar to SuggestionLock implementation
+        const endpoint = process.env.COSMOS_ENDPOINT;
+        const key = process.env.COSMOS_KEY;
+        const databaseId = process.env.COSMOS_DATABASE_ID;
+        const containerId = process.env.COSMOS_CONTAINER_ID;
+
+        const client = new CosmosClient({ endpoint, key });
+        const database = client.database(databaseId);
+        const container = database.container(containerId);
         
-        // Get the existing suggestion
-        const querySpec = {
-            query: "SELECT * FROM c WHERE c.id = @id",
-            parameters: [
-                {
-                    name: "@id",
-                    value: id
-                }
-            ]
-        };
-        
-        const { resources } = await container.items.query(querySpec).fetchAll();
-        
-        if (resources.length === 0) {
+        // Check if suggestion exists first
+        try {
+            const { resource: suggestion } = await container.item(id).read();
+            
+            if (!suggestion) {
+                context.res = {
+                    status: 404,
+                    body: { message: `Suggestion with id ${id} not found` }
+                };
+                return;
+            }
+            
+            // Delete the suggestion from CosmosDB
+            await container.item(id).delete();
+            
             context.res = {
-                status: 404,
-                body: { message: `Suggestion with id ${id} not found` }
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: { message: 'Suggestion deleted successfully' }
             };
-            return;
+        } catch (itemError) {
+            // If the item doesn't exist, CosmosDB will throw a 404 error
+            if (itemError.code === 404) {
+                context.res = {
+                    status: 404,
+                    body: { message: `Suggestion with id ${id} not found` }
+                };
+                return;
+            }
+            throw itemError; // Re-throw for other errors
         }
-        
-        // Delete the suggestion from CosmosDB
-        await container.item(id).delete();
-        
-        context.res = {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: { message: 'Suggestion deleted successfully' }
-        };
     } catch (error) {
         context.log.error(`Error deleting suggestion with id ${context.bindingData.id}:`, error);
         context.res = {
