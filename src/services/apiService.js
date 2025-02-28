@@ -172,14 +172,13 @@ const apiService = {
   // Delete a suggestion
   deleteSuggestion: async (id) => {
     try {
-      // Instead of DELETE, we'll use PUT to mark the suggestion as deleted
+      // Clean implementation using only DELETE - no fallbacks
       const response = await fetch(`/api/suggestions/${id}`, {
-        method: 'PUT',
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'X-Admin-Status': 'true' // Add admin header
-        },
-        body: JSON.stringify({ isDeleted: true })
+          'X-Admin-Status': 'true'  // Send admin header for authorization
+        }
       });
       return handleResponse(response);
     } catch (error) {
@@ -195,13 +194,12 @@ const apiService = {
         'Content-Type': 'application/json'
       };
       
-      // Only add admin header if user is admin
       if (isAdmin) {
         headers['X-Admin-Status'] = 'true';
       }
       
-      // Use main suggestion update endpoint instead of dedicated lock endpoint
-      const response = await fetch(`/api/suggestions/${id}`, {
+      // Create proper lock endpoint at /api/suggestions/{id}/lock on the backend
+      const response = await fetch(`/api/suggestions/${id}/lock`, {
         method: 'PUT',
         headers: headers,
         body: JSON.stringify({ isLocked })
@@ -220,13 +218,12 @@ const apiService = {
         'Content-Type': 'application/json'
       };
       
-      // Only add admin header if user is admin
       if (isAdmin) {
         headers['X-Admin-Status'] = 'true';
       }
       
-      // Use main suggestion update endpoint instead of dedicated pin endpoint
-      const response = await fetch(`/api/suggestions/${id}`, {
+      // Create proper pin endpoint at /api/suggestions/{id}/pin on the backend
+      const response = await fetch(`/api/suggestions/${id}/pin`, {
         method: 'PUT',
         headers: headers,
         body: JSON.stringify({ isPinned })
