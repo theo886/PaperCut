@@ -72,8 +72,8 @@ function AppContent() {
     return <Login />;
   }
 
-  // Explicitly use fullName from auth middleware for display
-  const displayName = user.fullName;
+  // Get user's display name - now from the claims-extracted fullName or fallbacks
+  const displayName = user.fullName || user.displayName || user.userDetails;
   console.log("Using display name:", displayName, "from user:", user);
   
   // Check if user email is in the admin list
@@ -85,7 +85,7 @@ function AppContent() {
   const userInfo = {
     id: user.userId,
     name: displayName,
-    initial: displayName ? displayName.charAt(0).toUpperCase() : 'U',
+    initial: user.firstName ? user.firstName.charAt(0).toUpperCase() : (displayName ? displayName.charAt(0).toUpperCase() : 'U'),
     isAdmin: isAdmin
   };
 
