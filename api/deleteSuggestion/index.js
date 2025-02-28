@@ -68,39 +68,30 @@ module.exports = async function (context, req) {
         const database = client.database(databaseId);
         const container = database.container(containerId);
         
-        // Check if suggestion exists first
-        try {
-            const { resource: suggestion } = await container.item(id).read();
-            
-            if (!suggestion) {
-                context.res = {
-                    status: 404,
-                    body: { message: `Suggestion with id ${id} not found` }
-                };
-                return;
-            }
-            
-            // Delete the suggestion from CosmosDB
-            await container.item(id).delete();
-            
+        // Query for the suggestion instead of direct item lookup
+        const { resources: suggestions } = await container.items.query({
+            query: "SELECT * FROM c WHERE c.id = @id",
+            parameters: [{ name: "@id", value: id }]
+        }).fetchAll();
+        
+        if (suggestions.length === 0) {
             context.res = {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: { message: 'Suggestion deleted successfully' }
+                status: 404,
+                body: { message: `Suggestion with id ${id} not found` }
             };
-        } catch (itemError) {
-            // If the item doesn't exist, CosmosDB will throw a 404 error
-            if (itemError.code === 404) {
-                context.res = {
-                    status: 404,
-                    body: { message: `Suggestion with id ${id} not found` }
-                };
-                return;
-            }
-            throw itemError; // Re-throw for other errors
+            return;
         }
+        
+        // Delete the suggestion from CosmosDB
+        await container.item(id).delete();
+        
+        context.res = {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: { message: 'Suggestion deleted successfully' }
+        };
     } catch (error) {
         context.log.error(`Error deleting suggestion with id ${context.bindingData.id}:`, error);
         context.res = {
