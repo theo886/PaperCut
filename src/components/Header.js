@@ -1,20 +1,43 @@
 import React, { useContext, useState } from 'react';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, PieChart } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
-const Header = ({ anonymousMode, toggleAnonymousMode, setView, user }) => {
+const Header = ({ anonymousMode, toggleAnonymousMode, setView, user, showDashboard }) => {
   const { logout } = useContext(AuthContext);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   return (
     <header className="bg-white shadow-sm">
-      <div className="max-w-xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 
-          className="text-3xl font-bold text-gray-800 cursor-pointer" 
-          onClick={() => setView('list')}
-        >
-          Project Paper Cut
-        </h1>
+      <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-6">
+          <h1 
+            className="text-3xl font-bold text-gray-800 cursor-pointer" 
+            onClick={() => setView('list')}
+          >
+            Project Paper Cut
+          </h1>
+          
+          {/* Navigation links */}
+          <nav className="hidden md:flex items-center space-x-4">
+            <button
+              onClick={() => setView('list')}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              Suggestions
+            </button>
+            
+            {showDashboard && (
+              <button
+                onClick={() => setView('dashboard')}
+                className="text-gray-600 hover:text-gray-900 flex items-center"
+              >
+                <PieChart size={16} className="mr-1" />
+                Dashboard
+              </button>
+            )}
+          </nav>
+        </div>
+        
         <div className="flex items-center space-x-4">
           <div className="relative">
             <button

@@ -3,8 +3,9 @@ import Header from './components/Header';
 import SuggestionCard from './components/SuggestionCard';
 import SuggestionDetail from './components/SuggestionDetail';
 import SuggestionForm from './components/SuggestionForm';
+import Dashboard from './components/Dashboard';
 import { initialSuggestions } from './data'; // Fallback data
-import { ChevronUp, Clock } from 'lucide-react';
+import { ChevronUp, Clock, PieChart } from 'lucide-react';
 import { AuthProvider, AuthContext } from './contexts/AuthContext';
 import Login from './components/Login';
 import apiService from './services/apiService';
@@ -13,7 +14,7 @@ import adminEmails from './adminEmails';
 
 // Main App component with authentication
 function AppContent() {
-  const [view, setView] = useState('list'); // 'list', 'detail', 'create'
+  const [view, setView] = useState('list'); // 'list', 'detail', 'create', 'dashboard'
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [anonymousMode] = useState(false); // We're no longer toggling anonymousMode from header
@@ -200,23 +201,29 @@ function AppContent() {
         return s;
       }));
       
-      // Update selectedSuggestion if it's the one being updated
+      // Update selected suggestion if it's the one being updated
       if (selectedSuggestion && selectedSuggestion.id === id) {
         setSelectedSuggestion(updatedSuggestion);
       }
     } catch (error) {
       console.error(`Error updating status for suggestion ${id}:`, error);
-      alert('Failed to update status. Please try again later.');
+      alert('Failed to update suggestion status. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
-
-  // Update effort/impact scores (admin action)
+  
+  // Update suggestion scores (admin action)
   const updateScores = async (id, effortScore, impactScore) => {
     try {
       setLoading(true);
-      const updatedData = { effortScore, impactScore };
+      const priorityScore = (6 - effortScore) * impactScore; // Calculate priority
+      const updatedData = { 
+        effortScore, 
+        impactScore, 
+        priorityScore 
+      };
+      
       const updatedSuggestion = await apiService.updateSuggestion(id, updatedData);
       
       // Update the suggestions list with the updated suggestion
@@ -227,73 +234,65 @@ function AppContent() {
         return s;
       }));
       
-      // Update selectedSuggestion if it's the one being updated
+      // Update selected suggestion if it's the one being updated
       if (selectedSuggestion && selectedSuggestion.id === id) {
         setSelectedSuggestion(updatedSuggestion);
       }
     } catch (error) {
       console.error(`Error updating scores for suggestion ${id}:`, error);
-      alert('Failed to update scores. Please try again later.');
+      alert('Failed to update suggestion scores. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
   
-  // Merge suggestions (admin action)
-  const mergeSuggestions = async (targetId, sourceId) => {
-    try {
-      setLoading(true);
-      
-      console.log('Attempting to merge:', { targetId, sourceId });
-      console.log('Current user admin status:', userInfo.isAdmin);
-      
-      const result = await apiService.mergeSuggestions(targetId, sourceId);
-      
-      // Update suggestions list
-      setSuggestions(suggestions.map(s => {
-        if (s.id === targetId) {
-          return result.target;
-        }
-        if (s.id === sourceId) {
-          return result.source;
-        }
-        return s;
-      }));
-      
-      // After merging, go back to the list view since the current suggestion is now merged
-      setView('list');
-      
-      alert('Suggestions merged successfully');
-      return result;
-    } catch (error) {
-      console.error(`Error merging suggestions:`, error);
-      alert('Failed to merge suggestions. Please try again later.');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Create a new suggestion
-  const createSuggestion = async (title, description, isAnonymous, attachments = [], departments = []) => {
+  const createSuggestion = async (suggestionData) => {
     try {
       setLoading(true);
-      const suggestionData = {
-        title,
-        description,
-        isAnonymous,
-        attachments,
-        departments
-      };
-      
       const newSuggestion = await apiService.createSuggestion(suggestionData);
       
-      // Add the new suggestion to the list
+      // Add to suggestions list
       setSuggestions([newSuggestion, ...suggestions]);
+      
+      // Navigate back to list view
       setView('list');
     } catch (error) {
       console.error('Error creating suggestion:', error);
       alert('Failed to create suggestion. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Merge suggestions
+  const mergeSuggestions = async (targetId, sourceId) => {
+    try {
+      setLoading(true);
+      const response = await apiService.mergeSuggestions(targetId, sourceId);
+      
+      // Update suggestions list with merged suggestions
+      const updatedSuggestions = suggestions.map(s => {
+        if (s.id === targetId) {
+          return response.target;
+        } else if (s.id === sourceId) {
+          return response.source;
+        }
+        return s;
+      });
+      
+      setSuggestions(updatedSuggestions);
+      
+      // Update selected suggestion if it's the one being merged
+      if (selectedSuggestion && selectedSuggestion.id === targetId) {
+        setSelectedSuggestion(response.target);
+      } else if (selectedSuggestion && selectedSuggestion.id === sourceId) {
+        // If the selected suggestion was the source, go back to list
+        setView('list');
+      }
+    } catch (error) {
+      console.error(`Error merging suggestions:`, error);
+      alert('Failed to merge suggestions. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -431,6 +430,22 @@ function AppContent() {
 
   // Render different views based on state
   switch (view) {
+    case 'dashboard':
+      return (
+        <div className="min-h-screen bg-gray-100">
+          <Header 
+            anonymousMode={false}
+            toggleAnonymousMode={() => {}}
+            setView={setView}
+            user={userInfo}
+            showDashboard={isAdmin}
+          />
+          <Dashboard 
+            isAdmin={userInfo.isAdmin}
+            onBack={() => setView('list')}
+          />
+        </div>
+      );
     case 'detail':
       return (
         <div className="min-h-screen bg-gray-100">
@@ -439,6 +454,7 @@ function AppContent() {
             toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
+            showDashboard={isAdmin}
           />
           {loading ? (
             <div className="max-w-xl mx-auto p-4 text-center">
@@ -482,6 +498,7 @@ function AppContent() {
             toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
+            showDashboard={isAdmin}
           />
           <SuggestionForm 
             onSubmit={createSuggestion}
@@ -504,6 +521,7 @@ function AppContent() {
             toggleAnonymousMode={() => {}}
             setView={setView}
             user={userInfo}
+            showDashboard={isAdmin}
           />
           <div className="max-w-xl mx-auto p-4">
             <div className="flex justify-between items-center mb-6">
@@ -511,12 +529,22 @@ function AppContent() {
                 <h1 className="text-xl font-bold">Improvement Ideas</h1>
                 <p className="text-gray-600">Vote on existing ideas or suggest new ones.</p>
               </div>
-              <button 
-                onClick={() => setView('create')}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
-              >
-                Make a suggestion
-              </button>
+              <div className="flex gap-2">
+                {isAdmin && (
+                  <button 
+                    onClick={() => setView('dashboard')}
+                    className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 flex items-center"
+                  >
+                    <PieChart size={16} className="mr-2" /> Dashboard
+                  </button>
+                )}
+                <button 
+                  onClick={() => setView('create')}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
+                >
+                  Make a suggestion
+                </button>
+              </div>
             </div>
             
             <div className="flex gap-4 mb-4 text-sm">

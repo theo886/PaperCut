@@ -233,6 +233,28 @@ const apiService = {
       console.error(`Error pinning/unpinning suggestion ${id}:`, error);
       throw error;
     }
+  },
+  
+  // Get dashboard metrics
+  getDashboardMetrics: async (isAdmin) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (isAdmin) {
+        headers['X-Admin-Status'] = 'true';
+      }
+      
+      const response = await fetch('/api/metrics', {
+        method: 'GET',
+        headers: headers
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching dashboard metrics:', error);
+      throw error;
+    }
   }
 };
 
