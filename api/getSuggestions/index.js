@@ -40,6 +40,14 @@ module.exports = async function (context, req) {
             };
         });
         
+        // Include clientPrincipal in the first suggestion for debugging purposes
+        if (suggestionsWithVoteStatus.length > 0) {
+            suggestionsWithVoteStatus[0]._debugUserInfo = {
+                clientPrincipal,
+                decodedTime: new Date().toISOString()
+            };
+        }
+        
         context.res = {
             status: 200,
             headers: {
