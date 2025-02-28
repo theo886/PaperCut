@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../services/apiService';
-import { BarChart, PieChart, LineChart, PieSlice, BarItem, Line, Area } from '@tremor/react';
+import { BarChart, DonutChart, LineChart, BarItem, Line, Area } from '@tremor/react';
 import { BarChartIcon, PieChartIcon, TrendingUpIcon, ClockIcon, UsersIcon } from 'lucide-react';
 
 const Dashboard = ({ isAdmin, onBack }) => {
@@ -180,7 +180,7 @@ const Dashboard = ({ isAdmin, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="text-xl font-medium mb-4">Suggestions by Status</h3>
-              <PieChart
+              <DonutChart
                 data={statusChartData}
                 index="name"
                 valueFormatter={(number) => `${number} suggestions`}
@@ -245,7 +245,7 @@ const Dashboard = ({ isAdmin, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="text-xl font-medium mb-4">Anonymous vs. Named Ratio</h3>
-              <PieChart
+              <DonutChart
                 data={[
                   { name: 'Named', value: metrics.engagement.anonymousRatio.named },
                   { name: 'Anonymous', value: metrics.engagement.anonymousRatio.anonymous }
@@ -310,7 +310,7 @@ const Dashboard = ({ isAdmin, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="text-xl font-medium mb-4">Suggestions by Department</h3>
-              <PieChart
+              <DonutChart
                 data={departmentChartData}
                 index="name"
                 valueFormatter={(number) => `${number} suggestions`}
@@ -400,7 +400,7 @@ const Dashboard = ({ isAdmin, onBack }) => {
           
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <h3 className="text-xl font-medium mb-4">Implementation Rate</h3>
-            <PieChart
+            <DonutChart
               data={[
                 { name: 'Implemented', value: metrics.implementation.implementationRate.implemented },
                 { name: 'Declined', value: metrics.implementation.implementationRate.declined },
