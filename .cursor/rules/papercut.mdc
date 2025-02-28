@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+---
+
+# Your rule content
+
+This is an Azure static web app, with with a cosmos nosql database, and a blob storage container.
+
+Don't ever only simulate the changes I ask for on the front end, I need full implementation all the way to the back end, I am trying to make a fully functional app.
