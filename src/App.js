@@ -73,8 +73,8 @@ function AppContent() {
   }
 
   // User info - now coming from authenticated user
-  // Use displayName from authService or fall back to formatting userDetails
-  const displayName = user.displayName || formatUserName(user.userDetails);
+  // Use fullName from auth middleware, displayName from authService, or fall back to formatting userDetails
+  const displayName = user.fullName || user.displayName || formatUserName(user.userDetails);
   console.log("Using display name:", displayName, "from user:", user);
   
   // Check if user email is in the admin list
