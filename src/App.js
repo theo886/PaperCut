@@ -72,9 +72,8 @@ function AppContent() {
     return <Login />;
   }
 
-  // User info - now coming from authenticated user
-  // Use fullName from auth middleware, displayName from authService, or fall back to formatting userDetails
-  const displayName = user.fullName || user.displayName || formatUserName(user.userDetails);
+  // Explicitly use fullName from auth middleware for display
+  const displayName = user.fullName;
   console.log("Using display name:", displayName, "from user:", user);
   
   // Check if user email is in the admin list
@@ -89,11 +88,6 @@ function AppContent() {
     initial: displayName ? displayName.charAt(0).toUpperCase() : 'U',
     isAdmin: isAdmin
   };
-
-  // Add a console log to see what's happening
-  console.log('User details:', user.userDetails);
-  console.log('Is admin:', isAdmin);
-  console.log('Admin list:', adminEmails);
 
   // Navigate to suggestion detail view
   const viewSuggestion = async (id) => {
