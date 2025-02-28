@@ -306,8 +306,13 @@ function AppContent() {
       setLoading(true);
       await apiService.deleteSuggestion(id);
       
-      // Remove the suggestion from the list
-      setSuggestions(suggestions.filter(s => s.id !== id));
+      // Instead of removing from the list, mark it as deleted
+      setSuggestions(suggestions.map(s => {
+        if (s.id === id) {
+          return { ...s, isDeleted: true };
+        }
+        return s;
+      }));
       
       // If the deleted suggestion was selected, go back to list view
       if (selectedSuggestion && selectedSuggestion.id === id) {
@@ -410,7 +415,7 @@ function AppContent() {
 
   // Sort suggestions
   const sortedSuggestions = [...suggestions]
-    .filter(suggestion => suggestion.status !== 'Merged') // Filter out merged suggestions
+    .filter(suggestion => suggestion.status !== 'Merged' && !suggestion.isDeleted) // Filter out merged and deleted suggestions
     .sort((a, b) => {
       // First prioritize pinned posts
       if (a.isPinned && !b.isPinned) return -1;
