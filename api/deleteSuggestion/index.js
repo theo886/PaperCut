@@ -83,7 +83,7 @@ module.exports = async function (context, req) {
         }
         
         // Delete the suggestion from CosmosDB
-        await container.item(id).delete();
+        await container.item(id, id).delete();
         
         context.res = {
             status: 200,
