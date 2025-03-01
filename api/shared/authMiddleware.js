@@ -15,8 +15,6 @@ const authenticate = (req) => {
         userDetails: clientPrincipal.userDetails,
         userRoles: clientPrincipal.userRoles || [],
         fullName: fullName,
-        firstName: firstName,
-        lastName: lastName
     };
 };
 
