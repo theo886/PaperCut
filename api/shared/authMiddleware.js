@@ -12,35 +12,29 @@ const authenticate = (req) => {
     let firstName = null;
     let lastName = null;
     
-   // Extract full name from claims if available
-   if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
-    // Look for "name" claim specifically - this contains the full name "Alex Theodossiou"
-    const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
-    if (nameClaim && nameClaim.val) {
-      clientPrincipal.fullName = nameClaim.val;
-    }
-    
-    // Also get first and last name for use in avatars etc.
-    const firstNameClaim = clientPrincipal.claims.find(
-      claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'
-    );
-    const lastNameClaim = clientPrincipal.claims.find(
-      claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
-    );
-    
-    if (firstNameClaim) {
-      clientPrincipal.firstName = firstNameClaim.val;
-    }
-    
-    if (lastNameClaim) {
-      clientPrincipal.lastName = lastNameClaim.val;
-    }
-  }
+    if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
+        // Look for the "name" claim
+        const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
+        if (nameClaim && nameClaim.val) {
+          fullName = nameClaim.val; // Update local variable
+        }
   
-  // Add display name if not present (for easier reference in UI)
-  if (clientPrincipal && clientPrincipal.userDetails) {
-    clientPrincipal.displayName = clientPrincipal.name;
-  }
+        // given name
+        const firstNameClaim = clientPrincipal.claims.find(
+          claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'
+        );
+        if (firstNameClaim && firstNameClaim.val) {
+          firstName = firstNameClaim.val;
+        }
+  
+        // surname
+        const lastNameClaim = clientPrincipal.claims.find(
+          claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+        );
+        if (lastNameClaim && lastNameClaim.val) {
+          lastName = lastNameClaim.val;
+        }
+      }
     
 
 
