@@ -523,42 +523,42 @@ function AppContent() {
             user={userInfo}
             showDashboard={isAdmin}
           />
-          <div className="max-w-4xl mx-auto p-5">
+          <div className="max-w-4xl mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-xl font-bold">Improvement Ideas</h1>
+                <p className="text-gray-600">Vote on existing ideas or suggest new ones.</p>
+              </div>
+              
               <button 
                 onClick={() => setView('create')}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
               >
                 Make a suggestion
               </button>
-              
-              <div className="flex gap-4 text-sm">
-                <button 
-                  className={`flex items-center pb-1 ${sortBy === 'newest' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  onClick={() => setSortBy('newest')}
-                >
-                  <Clock size={16} className="mr-1" /> Newest
-                </button>
-                <button 
-                  className={`flex items-center pb-1 ${sortBy === 'votes' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  onClick={() => setSortBy('votes')}
-                >
-                  <ChevronUp size={16} className="mr-1" /> Most voted
-                </button>
-                {isAdmin && (
-                  <button 
-                    className={`flex items-center pb-1 ${view === 'dashboard' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    onClick={() => setView('dashboard')}
-                  >
-                    <PieChart size={16} className="mr-1" /> Dashboard
-                  </button>
-                )}
-              </div>
             </div>
             
-            <div className="mb-6">
-              <h1 className="text-xl font-bold">Improvement Ideas</h1>
-              <p className="text-gray-600">Vote on existing ideas or suggest new ones.</p>
+            <div className="flex gap-4 text-sm mb-6">
+              <button 
+                className={`flex items-center pb-1 ${sortBy === 'newest' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setSortBy('newest')}
+              >
+                <Clock size={16} className="mr-1" /> Newest
+              </button>
+              <button 
+                className={`flex items-center pb-1 ${sortBy === 'votes' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setSortBy('votes')}
+              >
+                <ChevronUp size={16} className="mr-1" /> Most voted
+              </button>
+              {isAdmin && (
+                <button 
+                  className={`flex items-center pb-1 ${view === 'dashboard' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setView('dashboard')}
+                >
+                  <PieChart size={16} className="mr-1" /> Dashboard
+                </button>
+              )}
             </div>
             
             {loading && (

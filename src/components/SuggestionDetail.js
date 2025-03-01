@@ -484,9 +484,10 @@ const SuggestionDetail = ({
             </div>
             <button 
               onClick={() => setActivityExpanded(!activityExpanded)} 
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+              aria-label={activityExpanded ? "Collapse activity" : "Expand activity"}
             >
-              {activityExpanded ? 'Collapse' : 'Expand'}
+              {activityExpanded ? "-" : "+"}
             </button>
           </h3>
           
