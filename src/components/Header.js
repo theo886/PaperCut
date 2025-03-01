@@ -8,7 +8,7 @@ const Header = ({ anonymousMode, toggleAnonymousMode, setView, user, showDashboa
   
   return (
     <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-5 py-4 flex justify-between items-center">
+      <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center">
           <h1 
             className="text-3xl font-bold text-gray-800 cursor-pointer" 
