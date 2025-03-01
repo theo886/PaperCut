@@ -2,23 +2,7 @@ const { getContainer } = require('../shared/cosmosClient');
 const { v4: uuidv4 } = require('uuid');
 const { authenticate } = require('../shared/authMiddleware');
 
-// Helper function for formatting display names from emails (as fallback)
-function formatDisplayName(email) {
-    if (!email) return '';
-    
-    // Check if it's already a name (not an email)
-    if (!email.includes('@')) {
-        return email;
-    }
-    
-    // Extract name part from email
-    const namePart = email.split('@')[0];
-    
-    // Replace dots, underscores, or hyphens with spaces and capitalize each word
-    return namePart
-        .replace(/[._-]/g, ' ')
-        .replace(/\b\w/g, l => l.toUpperCase());
-}
+
 
 module.exports = async function (context, req) {
     try {
@@ -44,9 +28,9 @@ module.exports = async function (context, req) {
             return;
         }
 
-        // Determine the author name - use fullName if available, otherwise fallback to formatted email
+        // Determine the author name - use fullName if available, otherwise use "NameMissing"
         const authorName = isAnonymous ? "Anonymous" : 
-                          (userData.fullName || formatDisplayName(userData.userDetails));
+                          (userData.fullName || "NameMissing");
         
         // Get initial for avatar - use first name's initial when available
         const authorInitial = isAnonymous ? "?" : 

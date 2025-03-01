@@ -73,8 +73,8 @@ function AppContent() {
     return <Login />;
   }
 
-  // Get user's display name - now from the claims-extracted fullName or fallbacks
-  const displayName = user.Name 
+  // Get user's display name - now from the claims-extracted fullName or fallback to NameMissing
+  const displayName = user.fullName || "NameMissing";
   console.log("Using display name:", displayName, "from user:", user);
   
   // Check if user email is in the admin list
