@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { ChevronDown, LogOut, PieChart } from 'lucide-react';
+import { ChevronDown, LogOut } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Header = ({ anonymousMode, toggleAnonymousMode, setView, user, showDashboard }) => {
@@ -25,16 +25,6 @@ const Header = ({ anonymousMode, toggleAnonymousMode, setView, user, showDashboa
             >
               Suggestions
             </button>
-            
-            {showDashboard && (
-              <button
-                onClick={() => setView('dashboard')}
-                className="text-gray-600 hover:text-gray-900 flex items-center"
-              >
-                <PieChart size={16} className="mr-1" />
-                Dashboard
-              </button>
-            )}
           </nav>
         </div>
         

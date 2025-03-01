@@ -530,14 +530,6 @@ function AppContent() {
                 <p className="text-gray-600">Vote on existing ideas or suggest new ones.</p>
               </div>
               <div className="flex gap-2">
-                {isAdmin && (
-                  <button 
-                    onClick={() => setView('dashboard')}
-                    className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 flex items-center"
-                  >
-                    <PieChart size={16} className="mr-2" /> Dashboard
-                  </button>
-                )}
                 <button 
                   onClick={() => setView('create')}
                   className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
@@ -560,6 +552,14 @@ function AppContent() {
               >
                 <ChevronUp size={16} className="mr-1" /> Most voted
               </button>
+              {isAdmin && (
+                <button 
+                  className={`flex items-center pb-1 ${view === 'dashboard' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setView('dashboard')}
+                >
+                  <PieChart size={16} className="mr-1" /> Dashboard
+                </button>
+              )}
             </div>
             
             {loading && (
