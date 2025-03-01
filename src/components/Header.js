@@ -9,23 +9,13 @@ const Header = ({ anonymousMode, toggleAnonymousMode, setView, user, showDashboa
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center">
           <h1 
             className="text-3xl font-bold text-gray-800 cursor-pointer" 
             onClick={() => setView('list')}
           >
             Project Paper Cut
           </h1>
-          
-          {/* Navigation links */}
-          <nav className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={() => setView('list')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              Suggestions
-            </button>
-          </nav>
         </div>
         
         <div className="flex items-center space-x-4">

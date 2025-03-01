@@ -197,7 +197,7 @@ const SuggestionDetail = ({
             <h4 className="text-sm text-gray-500 mb-1">Status</h4>
             {isAdmin ? (
               <select 
-                className="block w-48 p-2 border rounded-md text-sm"
+                className="block w-32 p-2 border rounded-md text-sm"
                 value={suggestion.status}
                 onChange={(e) => onUpdateStatus(e.target.value)}
               >
