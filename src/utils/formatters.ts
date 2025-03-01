@@ -1,7 +1,7 @@
 // Utility functions for formatting data
 
 // Format a date string into a user-friendly format
-export const formatDate = (dateString) => {
+export const formatDate = (dateString: string): string => {
   if (!dateString) return '';
   
   const date = new Date(dateString);
@@ -24,7 +24,7 @@ export const formatDate = (dateString) => {
 };
 
 // Parse a user's email to extract name
-export const formatUserName = (userEmail) => {
+export const formatUserName = (userEmail: string): string => {
   if (!userEmail) return '';
   
   // Check if it's already a name (not an email)
@@ -58,4 +58,4 @@ export const formatUserName = (userEmail) => {
   
   // If no recognized delimiter, just capitalize the first letter
   return namePart.charAt(0).toUpperCase() + namePart.slice(1);
-};
+}; 
