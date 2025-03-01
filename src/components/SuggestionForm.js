@@ -148,7 +148,14 @@ const SuggestionForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && description.trim() && !isSubmitting) {
-      onSubmit(title, description, submitAnonymously, attachments, departments);
+      const suggestionData = {
+        title: title.trim(),
+        description: description.trim(),
+        isAnonymous: submitAnonymously,
+        attachments: attachments,
+        departments: departments
+      };
+      onSubmit(suggestionData);
     }
   };
   
