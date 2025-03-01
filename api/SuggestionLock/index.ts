@@ -1,18 +1,14 @@
-import { Context } from "@azure/functions";
+import { AzureFunction, Context } from "@azure/functions";
 import { CosmosClient } from "@azure/cosmos";
 import { authenticate } from '../shared/authMiddleware';
-import { AuthenticatedRequest, Suggestion, Activity } from '../shared/types';
+import { AuthenticatedRequest, Suggestion, Activity, UserData, LockSuggestionRequestBody } from '../shared/types';
 
-interface LockRequestBody {
-    isLocked: boolean;
-}
-
-export default async function (context: Context, req: AuthenticatedRequest): Promise<void> {
+const suggestionLock: AzureFunction = async function (context: Context, req: AuthenticatedRequest): Promise<void> {
     // Get the suggestion ID from route parameters
     const suggestionId = context.bindingData.id as string;
     
     // Get lock status from body
-    const { isLocked } = req.body as LockRequestBody;
+    const { isLocked } = req.body as LockSuggestionRequestBody;
     
     if (suggestionId === undefined) {
         context.res = {
@@ -31,7 +27,7 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
     }
     
     // Get the current user information from the request
-    let userData;
+    let userData: UserData;
     try {
         userData = authenticate(req);
         context.log('User authenticated:', userData);
@@ -69,7 +65,7 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
         const container = database.container(containerId);
 
         // Query for the suggestion instead of direct item lookup
-        const { resources: suggestions } = await container.items.query({
+        const { resources: suggestions } = await container.items.query<Suggestion>({
             query: "SELECT * FROM c WHERE c.id = @id",
             parameters: [{ name: "@id", value: suggestionId }]
         }).fetchAll();
@@ -83,7 +79,7 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
         }
 
         // Get the suggestion from the query results
-        const suggestion = suggestions[0] as Suggestion;
+        const suggestion = suggestions[0];
 
         // Update the suggestion
         suggestion.isLocked = isLocked;
@@ -99,7 +95,7 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
         const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
                          displayName.charAt(0).toUpperCase();
         
-        suggestion.activity.push({
+        const newActivity: Activity = {
             id: Date.now().toString(),
             type: 'lock',
             status: isLocked ? 'locked' : 'unlocked',
@@ -107,7 +103,9 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
             author: displayName,
             authorInitial: userInitial,
             authorId: userData.userId
-        });
+        };
+        
+        suggestion.activity.push(newActivity);
 
         // Save the updated suggestion
         const { resource: updatedSuggestion } = await container.item(suggestionId).replace(suggestion);
@@ -123,4 +121,6 @@ export default async function (context: Context, req: AuthenticatedRequest): Pro
             body: { message: 'Error updating lock status', error: error.message }
         };
     }
-}; 
+};
+
+export default suggestionLock; 
