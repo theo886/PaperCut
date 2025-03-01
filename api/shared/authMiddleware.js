@@ -8,7 +8,7 @@ const authenticate = (req) => {
     }
     
     // Extract full name directly from clientPrincipal.name
-    let fullName = clientPrincipal.name || "NameMissing";
+    let fullName = user.name || "NameMissing";
 
     return {
         userId: clientPrincipal.userId,
