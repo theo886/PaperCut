@@ -47,6 +47,7 @@ const SuggestionDetail = ({
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [isMerging, setIsMerging] = useState(false);
   const [commentAttachments, setCommentAttachments] = useState([]);
+  const [activityExpanded, setActivityExpanded] = useState(false);
   
   // Update scores when suggestion changes
   useEffect(() => {
@@ -89,7 +90,7 @@ const SuggestionDetail = ({
   };
   
   return (
-    <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
         <div className="flex items-center mb-4">
           <button 
@@ -476,48 +477,64 @@ const SuggestionDetail = ({
 
         {/* Activity section */}
         <div className="mt-8">
-          <h3 className="font-medium mb-3 flex items-center">
-            <Activity size={18} className="mr-1" /> 
-            Activity
+          <h3 className="font-medium mb-3 flex items-center justify-between">
+            <div className="flex items-center">
+              <Activity size={18} className="mr-1" /> 
+              Activity
+            </div>
+            <button 
+              onClick={() => setActivityExpanded(!activityExpanded)} 
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              {activityExpanded ? 'Collapse' : 'Expand'}
+            </button>
           </h3>
           
-          <div className="space-y-3">
-            {suggestion.activity && suggestion.activity.map(activity => (
-              <div key={activity.id} className="flex gap-3 text-sm">
-                <div className="h-6 w-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 flex-shrink-0">
-                  {activity.authorInitial}
+          {activityExpanded && (
+            <div className="space-y-3">
+              {suggestion.activity && suggestion.activity.map(activity => (
+                <div key={activity.id} className="flex gap-3 text-sm">
+                  <div className="h-6 w-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 flex-shrink-0">
+                    {activity.authorInitial}
+                  </div>
+                  <div>
+                    {activity.type === 'status' && (
+                      <div>
+                        <span className="font-medium">{activity.author}</span> changed status from{' '}
+                        <span className="font-medium">{activity.from}</span> to{' '}
+                        <span className="font-medium">{activity.to}</span>
+                        <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
+                      </div>
+                    )}
+                    {activity.type === 'merge' && (
+                      <div>
+                        <span className="font-medium">{activity.author}</span> merged suggestion{' '}
+                        <span className="font-medium">{activity.sourceTitle}</span>{' '}
+                        into this
+                        <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              <div className="flex gap-3 text-sm">
+                <div className={`h-6 w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
+                  {suggestion.authorInitial}
                 </div>
                 <div>
-                  {activity.type === 'status' && (
-                    <div>
-                      <span className="font-medium">{activity.author}</span> changed status from{' '}
-                      <span className="font-medium">{activity.from}</span> to{' '}
-                      <span className="font-medium">{activity.to}</span>
-                      <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
-                    </div>
-                  )}
-                  {activity.type === 'merge' && (
-                    <div>
-                      <span className="font-medium">{activity.author}</span> merged suggestion{' '}
-                      <span className="font-medium">{activity.sourceTitle}</span>{' '}
-                      into this
-                      <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
-                    </div>
-                  )}
+                  <span className="font-medium">{suggestion.author}</span> created this idea
+                  <div className="text-gray-400 text-xs mt-1">{formatDate(suggestion.timestamp)}</div>
                 </div>
               </div>
-            ))}
-            
-            <div className="flex gap-3 text-sm">
-              <div className={`h-6 w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
-                {suggestion.authorInitial}
-              </div>
-              <div>
-                <span className="font-medium">{suggestion.author}</span> created this idea
-                <div className="text-gray-400 text-xs mt-1">{formatDate(suggestion.timestamp)}</div>
-              </div>
             </div>
-          </div>
+          )}
+          
+          {!activityExpanded && (
+            <div className="text-sm text-gray-500">
+              Activity history is collapsed. Click 'Expand' to view.
+            </div>
+          )}
         </div>
       </div>
       
