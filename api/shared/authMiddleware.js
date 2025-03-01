@@ -7,14 +7,50 @@ const authenticate = (req) => {
         throw { status: 401, message: "Authentication required" };
     }
     
-    // Extract full name directly from clientPrincipal.name
-    let fullName = user.name || "NameMissing";
+    // Extract name from claims, similar to how the frontend does it
+    let fullName = "NameMissing";
+    let firstName = null;
+    let lastName = null;
+    
+    // Process claims if available
+    if (clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
+        // Look for name claim
+        const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
+        if (nameClaim && nameClaim.val) {
+            fullName = nameClaim.val;
+        }
+        
+        // Get first and last name
+        const firstNameClaim = clientPrincipal.claims.find(
+            claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'
+        );
+        const lastNameClaim = clientPrincipal.claims.find(
+            claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+        );
+        
+        if (firstNameClaim) {
+            firstName = firstNameClaim.val;
+        }
+        
+        if (lastNameClaim) {
+            lastName = lastNameClaim.val;
+        }
+    }
+    
+    // Use userDetails as fallback for fullName if still missing
+    if (fullName === "NameMissing" && clientPrincipal.userDetails) {
+        fullName = clientPrincipal.userDetails;
+    }
 
     return {
         userId: clientPrincipal.userId,
         userDetails: clientPrincipal.userDetails,
         userRoles: clientPrincipal.userRoles || [],
         fullName: fullName,
+        firstName: firstName,
+        lastName: lastName,
+        // Add name for backward compatibility
+        name: fullName
     };
 };
 
