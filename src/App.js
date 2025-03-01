@@ -74,7 +74,7 @@ function AppContent() {
   }
 
   // Get user's display name - now from the claims-extracted fullName or fallbacks
-  const displayName = user.fullName || user.displayName || user.userDetails;
+  const displayName = user.Name 
   console.log("Using display name:", displayName, "from user:", user);
   
   // Check if user email is in the admin list
@@ -272,11 +272,10 @@ function AppContent() {
       const response = await apiService.mergeSuggestions(targetId, sourceId);
       
       // Update suggestions list with merged suggestions
-      const updatedSuggestions = suggestions.map(s => {
+      // and remove the source suggestion since it's now deleted
+      const updatedSuggestions = suggestions.filter(s => s.id !== sourceId).map(s => {
         if (s.id === targetId) {
           return response.target;
-        } else if (s.id === sourceId) {
-          return response.source;
         }
         return s;
       });

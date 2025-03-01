@@ -356,8 +356,8 @@ const SuggestionDetail = ({
           
           <div className="space-y-4">
             {suggestion.comments && suggestion.comments.map(comment => (
-              <div key={comment.id} className="flex gap-3">
-                <div className={`h-8 w-8 min-w-8 ${comment.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
+              <div key={comment.id} className={`flex gap-3 ${comment.isMergeDescription ? 'bg-indigo-50 p-3 rounded-md border border-indigo-100' : ''}`}>
+                <div className={`h-8 w-8 min-w-8 ${comment.isAnonymous ? 'bg-gray-400' : comment.isMergeDescription ? 'bg-indigo-500' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
                   {comment.authorInitial}
                 </div>
                 <div className="flex-grow">
@@ -369,9 +369,14 @@ const SuggestionDetail = ({
                         <GitMerge size={10} className="mr-1" /> From merged suggestion
                       </span>
                     )}
+                    {comment.isMergeDescription && (
+                      <span className="text-xs bg-indigo-200 text-indigo-800 px-1 rounded ml-2 flex items-center">
+                        <GitMerge size={10} className="mr-1" /> Merged suggestion description
+                      </span>
+                    )}
                     <span className="text-gray-400 text-sm ml-2">{formatDate(comment.timestamp)}</span>
                   </div>
-                  <p className="text-gray-700 mt-1">
+                  <p className={`mt-1 ${comment.isMergeDescription ? 'text-gray-800' : 'text-gray-700'}`}>
                     {comment.text}
                   </p>
                   

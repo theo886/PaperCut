@@ -134,10 +134,29 @@ module.exports = async function (context, req) {
         const targetVoters = updatedTarget.voters || [];
         updatedTarget.voters = [...new Set([...targetVoters, ...sourceVoters])];
         
-        // Merge comments
+        // Create a system comment with the source suggestion's description
+        const descriptionComment = {
+            id: uuidv4(),
+            text: `*Merged from suggestion "${sourceSuggestion.title}"*:\n\n${sourceSuggestion.description}`,
+            author: "System",
+            authorInitial: "S",
+            authorId: null,
+            isAnonymous: false,
+            timestamp: new Date().toISOString(),
+            likes: 0,
+            likedBy: [],
+            attachments: sourceSuggestion.attachments || [],
+            fromMerged: true,
+            isMergeDescription: true,
+            originalSuggestionId: sourceId,
+            originalSuggestionTitle: sourceSuggestion.title
+        };
+        
+        // Add the description comment first, then add all other comments
         const sourceComments = sourceSuggestion.comments || [];
         updatedTarget.comments = [
             ...(updatedTarget.comments || []),
+            descriptionComment,
             ...sourceComments.map(comment => ({
                 ...comment,
                 id: uuidv4(), // Generate new ID to avoid conflicts
@@ -150,16 +169,8 @@ module.exports = async function (context, req) {
         // Update the target suggestion in the database
         const { resource: updatedTargetResource } = await container.item(targetId).replace(updatedTarget);
         
-        // Mark the source suggestion as merged and inactive
-        const updatedSource = { ...sourceSuggestion };
-        updatedSource.status = 'Merged';
-        updatedSource.mergedInto = {
-            id: targetId,
-            title: targetSuggestion.title,
-            timestamp: new Date().toISOString()
-        };
-        
-        const { resource: updatedSourceResource } = await container.item(sourceId).replace(updatedSource);
+        // Delete the source suggestion from the database
+        await container.item(sourceId, sourceId).delete();
         
         context.res = {
             status: 200,
@@ -168,7 +179,7 @@ module.exports = async function (context, req) {
             },
             body: {
                 target: updatedTargetResource,
-                source: updatedSourceResource
+                source: null // Source is now deleted, so return null
             }
         };
     } catch (error) {

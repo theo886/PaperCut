@@ -54,7 +54,7 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
         </div>
         
         <div className="p-4 border-b bg-gray-50">
-          <h3 className="font-medium mb-2">Source Suggestion (Will be marked as merged)</h3>
+          <h3 className="font-medium mb-2">Source Suggestion (Will be deleted after merge)</h3>
           <div className="bg-white p-3 rounded border">
             <div className="font-medium">{targetSuggestion.title}</div>
             <div className="text-sm text-gray-500 mt-1">
@@ -137,29 +137,32 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
           </div>
         </div>
         
-        <div className="p-4 border-t flex justify-end">
-          <button
-            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 mr-2"
-            onClick={onClose}
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
-            onClick={handleMerge}
-            disabled={!selectedSourceId || isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 size={16} className="mr-2 animate-spin" /> Merging...
-              </>
-            ) : (
-              <>
-                <GitMerge size={16} className="mr-2" /> Merge Suggestions
-              </>
-            )}
-          </button>
+        <div className="p-4 border-t flex justify-between bg-gray-50">
+          <div className="text-sm text-gray-600">
+            <p>This will move votes, comments, and attachments to the selected suggestion.</p>
+            <p className="mt-1 text-red-600 font-medium">The source suggestion will be deleted after merging.</p>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={onClose}
+              className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleMerge}
+              className={`px-3 py-1.5 rounded-md text-white text-sm flex items-center ${
+                selectedSourceId && !isLoading
+                  ? 'bg-indigo-600 hover:bg-indigo-700'
+                  : 'bg-indigo-300 cursor-not-allowed'
+              }`}
+              disabled={!selectedSourceId || isLoading}
+            >
+              {isLoading && <Loader2 size={16} className="mr-2 animate-spin" />}
+              <GitMerge size={16} className="mr-1" /> Merge Suggestions
+            </button>
+          </div>
         </div>
       </div>
     </div>
