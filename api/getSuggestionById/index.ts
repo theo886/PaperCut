@@ -1,8 +1,10 @@
-const { getContainer } = require('../shared/cosmosClient');
+import { Context } from "@azure/functions";
+import { getContainer } from '../shared/cosmosClient';
+import { AuthenticatedRequest, Suggestion } from '../shared/types';
 
-module.exports = async function (context, req) {
+export default async function (context: Context, req: AuthenticatedRequest): Promise<void> {
     try {
-        const id = context.bindingData.id;
+        const id = context.bindingData.id as string;
         
         if (!id) {
             context.res = {
@@ -27,7 +29,7 @@ module.exports = async function (context, req) {
         
         // Get the current user information from the request
         const clientPrincipal = req.headers['x-ms-client-principal']
-            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString('ascii'))
+            ? JSON.parse(Buffer.from(req.headers['x-ms-client-principal'] as string, 'base64').toString('ascii'))
             : null;
             
         const userId = clientPrincipal?.userId || null;
@@ -43,7 +45,7 @@ module.exports = async function (context, req) {
         }
         
         // Add hasVoted property based on current user
-        const suggestion = resources[0];
+        const suggestion = resources[0] as Suggestion;
         const hasVoted = suggestion.voters && suggestion.voters.includes(userId);
         
         context.res = {
@@ -56,7 +58,7 @@ module.exports = async function (context, req) {
                 hasVoted
             }
         };
-    } catch (error) {
+    } catch (error: any) {
         context.log.error(`Error fetching suggestion with id ${context.bindingData.id}:`, error);
         context.res = {
             status: 500,
@@ -66,4 +68,4 @@ module.exports = async function (context, req) {
             body: { message: 'Error fetching suggestion', error: error.message }
         };
     }
-};
+}; 
