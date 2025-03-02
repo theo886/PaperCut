@@ -3,6 +3,7 @@ import { Edit, MessageCircle, Activity, GitMerge, Paperclip, MoreVertical, Trash
 import { formatDate } from '../utils/formatters';
 import MergeSuggestionModal from './MergeSuggestionModal';
 import FileUploader, { AttachmentList, Attachment } from './FileUploader';
+import apiService from '../services/apiService';
 
 const SuggestionDetail = ({ 
   suggestion, 
@@ -58,7 +59,7 @@ const SuggestionDetail = ({
   const handleSubmitComment = (e) => {
     e.preventDefault();
     if (comment.trim()) {
-      onAddComment(comment, commentAnonymously, commentAttachments);
+      onAddComment(suggestion.id, comment, commentAnonymously, commentAttachments);
       setComment('');
       setCommentAttachments([]);
     }
@@ -417,12 +418,37 @@ const SuggestionDetail = ({
                     Post anonymously
                   </label>
                   <div className="flex items-center">
-                    <label className="cursor-pointer mr-2">
+                    <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
                       <input
                         type="file"
                         className="hidden"
-                        onChange={(e) => handleCommentFileUploaded(e.target.files[0])}
+                        onChange={async (e) => {
+                          const files = e.target.files;
+                          if (files.length === 0) return;
+                          
+                          const file = files[0];
+                          
+                          // Validate file size (max 20MB)
+                          if (file.size > 20 * 1024 * 1024) {
+                            alert('File size exceeds the maximum limit of 20MB');
+                            return;
+                          }
+                          
+                          try {
+                            // Upload the file using the apiService
+                            const result = await apiService.uploadFile(file);
+                            
+                            // Add the uploaded file to comment attachments
+                            handleCommentFileUploaded(result);
+                            
+                            // Reset the input
+                            e.target.value = null;
+                          } catch (error) {
+                            alert(error.message || 'Error uploading file');
+                            console.error('Error uploading file:', error);
+                          }
+                        }}
                         disabled={suggestion.isLocked}
                       />
                     </label>
@@ -438,10 +464,6 @@ const SuggestionDetail = ({
                 
                 {!suggestion.isLocked && (
                   <>
-                    <FileUploader 
-                      onFileUploaded={handleCommentFileUploaded}
-                    />
-                    
                     <AttachmentList 
                       attachments={commentAttachments}
                       onRemove={handleRemoveCommentAttachment}
