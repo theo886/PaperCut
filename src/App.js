@@ -159,12 +159,12 @@ function AppContent() {
       
       setLoading(true);
       const commentData = { text, isAnonymous, attachments };
-      const newComment = await apiService.addComment(id, commentData);
+      const updatedSuggestion = await apiService.addComment(id, commentData);
       
-      // Update the suggestions list with the new comment
+      // Update the suggestions list with the updated suggestion that includes the new comment
       const updatedSuggestions = suggestions.map(s => {
         if (s.id === id) {
-          return { ...s, comments: [...s.comments, newComment] };
+          return updatedSuggestion;
         }
         return s;
       });
@@ -173,10 +173,7 @@ function AppContent() {
       
       // Update selectedSuggestion if it's the one being commented on
       if (selectedSuggestion && selectedSuggestion.id === id) {
-        setSelectedSuggestion({ 
-          ...selectedSuggestion, 
-          comments: [...selectedSuggestion.comments, newComment] 
-        });
+        setSelectedSuggestion(updatedSuggestion);
       }
     } catch (error) {
       console.error(`Error adding comment to suggestion ${id}:`, error);
