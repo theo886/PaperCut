@@ -110,6 +110,16 @@ const apiService = {
   // Add a comment to a suggestion
   addComment: async (suggestionId, commentData) => {
     try {
+      console.log('apiService: Starting addComment API call');
+      console.log('suggestionId:', suggestionId);
+      console.log('commentData:', commentData);
+      
+      // Get auth headers to debug what's being sent
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('Request headers:', headers);
       console.log('apiService: Sending comment data to backend:', {
         suggestionId,
         commentData
@@ -117,14 +127,20 @@ const apiService = {
       
       const response = await fetch(`/api/suggestions/${suggestionId}/comments`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(commentData)
       });
       
+      console.log('apiService: Raw response status:', response.status);
       const responseData = await handleResponse(response);
       console.log('apiService: Received comment response from backend:', responseData);
+      
+      // Log the latest comment
+      if (responseData && responseData.comments && responseData.comments.length > 0) {
+        const latestComment = responseData.comments[responseData.comments.length - 1];
+        console.log('Latest comment in response:', latestComment);
+      }
+      
       return responseData;
     } catch (error) {
       console.error(`Error adding comment to suggestion ${suggestionId}:`, error);
