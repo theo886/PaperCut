@@ -65,7 +65,7 @@ const SuggestionDetail = ({
         isAnonymous: commentAnonymously,
         attachments: commentAttachments
       });
-      onAddComment(suggestion.id, comment, commentAnonymously, commentAttachments);
+      onAddComment(comment, commentAnonymously, commentAttachments);
       setComment('');
       setCommentAttachments([]);
     }

@@ -159,6 +159,8 @@ function AppContent() {
       
       setLoading(true);
       
+      console.log('Debug addComment params:', { id, text, isAnonymous, attachmentsLength: attachments.length });
+      
       // Make sure the data is correctly structured
       const commentData = {
         text: String(text).trim(), // Explicitly convert to string and trim whitespace
