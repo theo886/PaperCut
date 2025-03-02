@@ -24,6 +24,9 @@ module.exports = async function (context, req) {
     try {
         const id = context.bindingData.id;
         
+        context.log('Request body:', JSON.stringify(req.body));
+        context.log('Request ID:', id);
+        
         if (!id) {
             context.res = {
                 status: 400,
@@ -46,6 +49,8 @@ module.exports = async function (context, req) {
         }
         
         const { text, isAnonymous, attachments } = req.body;
+        
+        context.log('Extracted data:', { text, isAnonymous, attachments });
         
         if (!text) {
             context.res = {
@@ -98,16 +103,18 @@ module.exports = async function (context, req) {
         // Create the new comment
         const newComment = {
             id: uuidv4(),
-            text,
+            text: text,
             author: isAnonymous ? "Anonymous" : displayName,
             authorInitial: isAnonymous ? "?" : userInitial,
             authorId: isAnonymous ? null : userData.userId,
-            isAnonymous: isAnonymous || false,
+            isAnonymous: typeof isAnonymous === 'boolean' ? isAnonymous : false,
             timestamp: new Date().toISOString(),
             likes: 0,
             likedBy: [],
-            attachments: attachments || []
+            attachments: Array.isArray(attachments) ? attachments : []
         };
+        
+        context.log('New comment object:', newComment);
         
         // Add the comment to the suggestion
         suggestion.comments.push(newComment);

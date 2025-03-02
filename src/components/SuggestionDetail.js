@@ -59,6 +59,12 @@ const SuggestionDetail = ({
   const handleSubmitComment = (e) => {
     e.preventDefault();
     if (comment.trim()) {
+      console.log('Submitting comment:', {
+        suggestionId: suggestion.id,
+        commentText: comment,
+        isAnonymous: commentAnonymously,
+        attachments: commentAttachments
+      });
       onAddComment(suggestion.id, comment, commentAnonymously, commentAttachments);
       setComment('');
       setCommentAttachments([]);

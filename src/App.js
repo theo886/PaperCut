@@ -158,8 +158,19 @@ function AppContent() {
       }
       
       setLoading(true);
-      const commentData = { text, isAnonymous, attachments };
+      
+      // Make sure the data is correctly structured
+      const commentData = {
+        text: text,
+        isAnonymous: Boolean(isAnonymous),
+        attachments: Array.isArray(attachments) ? attachments : []
+      };
+      
+      console.log('Sending comment data:', commentData);
+      
       const updatedSuggestion = await apiService.addComment(id, commentData);
+      console.log('API response - updated suggestion:', updatedSuggestion);
+      console.log('Latest comment:', updatedSuggestion.comments[updatedSuggestion.comments.length - 1]);
       
       // Update the suggestions list with the updated suggestion that includes the new comment
       const updatedSuggestions = suggestions.map(s => {
