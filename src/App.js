@@ -161,7 +161,7 @@ function AppContent() {
       
       // Make sure the data is correctly structured
       const commentData = {
-        text: text,
+        text: String(text), // Explicitly convert to string
         isAnonymous: Boolean(isAnonymous),
         attachments: Array.isArray(attachments) ? attachments : []
       };

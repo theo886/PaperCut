@@ -110,6 +110,11 @@ const apiService = {
   // Add a comment to a suggestion
   addComment: async (suggestionId, commentData) => {
     try {
+      console.log('apiService: Sending comment data to backend:', {
+        suggestionId,
+        commentData
+      });
+      
       const response = await fetch(`/api/suggestions/${suggestionId}/comments`, {
         method: 'POST',
         headers: {
@@ -117,7 +122,10 @@ const apiService = {
         },
         body: JSON.stringify(commentData)
       });
-      return handleResponse(response);
+      
+      const responseData = await handleResponse(response);
+      console.log('apiService: Received comment response from backend:', responseData);
+      return responseData;
     } catch (error) {
       console.error(`Error adding comment to suggestion ${suggestionId}:`, error);
       throw error;

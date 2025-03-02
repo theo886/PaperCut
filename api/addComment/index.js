@@ -61,10 +61,23 @@ module.exports = async function (context, req) {
         }
         
         // Get user's display name - use fullName if available, otherwise fallback to userDetails
-        const displayName = userData.fullName || "NameMissing";
+        const displayName = userData.fullName && userData.fullName !== "NameMissing" 
+            ? userData.fullName 
+            : formatDisplayName(userData.userDetails);
+            
         // Get user's initial - prefer first name initial if available
-        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
-                          displayName.charAt(0).toUpperCase();
+        const userInitial = userData.firstName 
+            ? userData.firstName.charAt(0).toUpperCase() 
+            : displayName.charAt(0).toUpperCase();
+        
+        // Log the user info for debugging
+        context.log('User info:', { 
+            displayName, 
+            userInitial, 
+            fullName: userData.fullName,
+            firstName: userData.firstName,
+            userDetails: userData.userDetails
+        });
         
         const container = await getContainer();
         
@@ -103,7 +116,7 @@ module.exports = async function (context, req) {
         // Create the new comment
         const newComment = {
             id: uuidv4(),
-            text: text,
+            text: text.toString(),
             author: isAnonymous ? "Anonymous" : displayName,
             authorInitial: isAnonymous ? "?" : userInitial,
             authorId: isAnonymous ? null : userData.userId,
