@@ -13,28 +13,37 @@ const authenticate = (req) => {
     let lastName = null;
     
     if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
+        console.log("Auth middleware - All claims:", JSON.stringify(clientPrincipal.claims));
+        
         // Look for the "name" claim
         const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
         if (nameClaim && nameClaim.val) {
-          fullName = nameClaim.val; // Update local variable
+            fullName = nameClaim.val;
         }
   
-        // given name
+        // Look for given name
         const firstNameClaim = clientPrincipal.claims.find(
-          claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'
+            claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' || 
+                    claim.typ === 'given_name'
         );
         if (firstNameClaim && firstNameClaim.val) {
-          firstName = firstNameClaim.val;
+            firstName = firstNameClaim.val;
         }
   
-        // surname
+        // Look for surname
         const lastNameClaim = clientPrincipal.claims.find(
-          claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+            claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' || 
+                    claim.typ === 'family_name'
         );
         if (lastNameClaim && lastNameClaim.val) {
-          lastName = lastNameClaim.val;
+            lastName = lastNameClaim.val;
         }
-      }
+        
+        // If we still don't have a full name but we have first and last, combine them
+        if (fullName === "NameMissing" && firstName && lastName) {
+            fullName = `${firstName} ${lastName}`;
+        }
+    }
     
 
 

@@ -68,9 +68,34 @@ module.exports = async function (context, req) {
         }
         
         // Get user's display name - use fullName if available, otherwise fallback to userDetails
-        const displayName = userData.fullName && userData.fullName !== "NameMissing" 
-            ? userData.fullName 
-            : formatDisplayName(userData.userDetails);
+        context.log('Using display name:', { 
+            fullName: userData.fullName, 
+            nameStatus: userData.fullName !== "NameMissing",
+            userDetails: userData.userDetails,
+            firstName: userData.firstName,
+            lastName: userData.lastName
+        });
+        
+        // Improved name handling logic
+        let displayName = "Anonymous";
+        if (!isAnonymous) {
+            // First try to use full name from auth
+            if (userData.fullName && userData.fullName !== "NameMissing") {
+                displayName = userData.fullName;
+            } 
+            // Then try to combine first and last name
+            else if (userData.firstName && userData.lastName) {
+                displayName = `${userData.firstName} ${userData.lastName}`;
+            }
+            // Then try to use first name only
+            else if (userData.firstName) {
+                displayName = userData.firstName;
+            }
+            // Then fallback to formatted email
+            else {
+                displayName = formatDisplayName(userData.userDetails);
+            }
+        }
             
         // Get user's initial - prefer first name initial if available
         const userInitial = userData.firstName 
