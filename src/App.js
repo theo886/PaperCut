@@ -161,12 +161,16 @@ function AppContent() {
       
       // Make sure the data is correctly structured
       const commentData = {
-        text: String(text), // Explicitly convert to string
+        text: String(text).trim(), // Explicitly convert to string and trim whitespace
         isAnonymous: Boolean(isAnonymous),
         attachments: Array.isArray(attachments) ? attachments : []
       };
       
-      console.log('Sending comment data:', commentData);
+      console.log('Sending comment data:', {
+        ...commentData,
+        textType: typeof commentData.text,
+        textLength: commentData.text.length
+      });
       
       const updatedSuggestion = await apiService.addComment(id, commentData);
       console.log('API response - updated suggestion:', updatedSuggestion);

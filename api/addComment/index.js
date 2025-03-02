@@ -50,7 +50,14 @@ module.exports = async function (context, req) {
         
         const { text, isAnonymous, attachments } = req.body;
         
-        context.log('Extracted data:', { text, isAnonymous, attachments });
+        context.log('Extracted data:', { 
+            text, 
+            textType: typeof text, 
+            isObject: typeof text === 'object',
+            textToString: text ? text.toString() : 'null',
+            isAnonymous, 
+            attachments 
+        });
         
         if (!text) {
             context.res = {
@@ -116,7 +123,7 @@ module.exports = async function (context, req) {
         // Create the new comment
         const newComment = {
             id: uuidv4(),
-            text: text.toString(),
+            text: typeof text === 'string' ? text : String(text),
             author: isAnonymous ? "Anonymous" : displayName,
             authorInitial: isAnonymous ? "?" : userInitial,
             authorId: isAnonymous ? null : userData.userId,
@@ -126,6 +133,12 @@ module.exports = async function (context, req) {
             likedBy: [],
             attachments: Array.isArray(attachments) ? attachments : []
         };
+        
+        // Make sure text isn't accidentally a UUID (defensive check)
+        if (typeof newComment.text === 'object') {
+            context.log('Warning: text was an object, converting to string representation');
+            newComment.text = JSON.stringify(newComment.text);
+        }
         
         context.log('New comment object:', newComment);
         
