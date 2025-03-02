@@ -185,25 +185,19 @@ const AppContent: React.FC = () => {
       
       setLoading(true);
       const commentData = { text, isAnonymous, attachments };
-      const newComment = await apiService.addComment(id, commentData) as Comment;
+      const updatedSuggestion = await apiService.addComment(id, commentData);
       
       // Update the suggestions list with the new comment
       setSuggestions(suggestions.map(s => {
         if (s.id === id) {
-          return { 
-            ...s, 
-            comments: [...s.comments, newComment] 
-          };
+          return updatedSuggestion;
         }
         return s;
       }));
       
-      // Update selectedSuggestion if it's the one being commented on
+      // Update selected suggestion if it's the one being commented on
       if (selectedSuggestion && selectedSuggestion.id === id) {
-        setSelectedSuggestion({ 
-          ...selectedSuggestion, 
-          comments: [...selectedSuggestion.comments, newComment] 
-        });
+        setSelectedSuggestion(updatedSuggestion);
       }
     } catch (error: any) {
       console.error(`Error adding comment to suggestion ${id}:`, error);
@@ -453,8 +447,8 @@ const AppContent: React.FC = () => {
     });
 
   // Handler for setting view that accepts the correct type
-  const handleSetView = (newView: 'list' | 'detail' | 'create' | 'dashboard') => {
-    setView(newView);
+  const handleSetView = (newView: string) => {
+    setView(newView as 'list' | 'detail' | 'create' | 'dashboard');
   };
 
   const onAddCommentHandler: SuggestionDetailProps['onAddComment'] = 
@@ -474,9 +468,9 @@ const AppContent: React.FC = () => {
           <Header 
             anonymousMode={false}
             toggleAnonymousMode={() => {}}
-            setView={handleSetView as HeaderProps['setView']}
+            setView={(newView) => setView(newView as 'list' | 'detail' | 'create' | 'dashboard')}
             user={userInfo as unknown as User}
-            showDashboard={isAdmin}
+            showDashboard={!!isAdmin}
           />
           <Dashboard 
             isAdmin={userInfo.isAdmin}
@@ -490,9 +484,9 @@ const AppContent: React.FC = () => {
           <Header 
             anonymousMode={false}
             toggleAnonymousMode={() => {}}
-            setView={handleSetView as HeaderProps['setView']}
+            setView={(newView) => setView(newView as 'list' | 'detail' | 'create' | 'dashboard')}
             user={userInfo as unknown as User}
-            showDashboard={isAdmin}
+            showDashboard={!!isAdmin}
           />
           {loading ? (
             <div className="max-w-xl mx-auto p-4 text-center">
@@ -534,9 +528,9 @@ const AppContent: React.FC = () => {
           <Header 
             anonymousMode={false}
             toggleAnonymousMode={() => {}}
-            setView={handleSetView as HeaderProps['setView']}
+            setView={(newView) => setView(newView as 'list' | 'detail' | 'create' | 'dashboard')}
             user={userInfo as unknown as User}
-            showDashboard={isAdmin}
+            showDashboard={!!isAdmin}
           />
           <SuggestionForm 
             onSubmit={createSuggestion}
@@ -557,9 +551,9 @@ const AppContent: React.FC = () => {
           <Header 
             anonymousMode={false}
             toggleAnonymousMode={() => {}}
-            setView={handleSetView as HeaderProps['setView']}
+            setView={(newView) => setView(newView as 'list' | 'detail' | 'create' | 'dashboard')}
             user={userInfo as unknown as User}
-            showDashboard={isAdmin}
+            showDashboard={!!isAdmin}
           />
           <div className="max-w-4xl mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
@@ -576,12 +570,12 @@ const AppContent: React.FC = () => {
               </button>
             </div>
             
-            <div className="flex gap-4 text-sm mb-6">
+            <div className="flex space-x-4 border-b mb-4">
               <button 
                 className={`flex items-center pb-1 ${sortBy === 'newest' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setSortBy('newest')}
               >
-                <Clock size={16} className="mr-1" /> Newest
+                <Clock size={16} className="mr-1" /> Newest 
               </button>
               <button 
                 className={`flex items-center pb-1 ${sortBy === 'votes' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
@@ -591,7 +585,7 @@ const AppContent: React.FC = () => {
               </button>
               {isAdmin && (
                 <button 
-                  className={`flex items-center pb-1 ${view === 'dashboard' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  className="flex items-center pb-1 text-gray-500 hover:text-gray-700"
                   onClick={() => setView('dashboard')}
                 >
                   <PieChart size={16} className="mr-1" /> Dashboard
