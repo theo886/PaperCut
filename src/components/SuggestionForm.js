@@ -167,6 +167,18 @@ const SuggestionForm = ({
     setAttachments(attachments.filter((_, i) => i !== index));
   };
   
+  const addComment = async (suggestionId, commentData) => {
+    const response = await fetch(`/api/suggestions/${suggestionId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(commentData)
+    });
+
+    const data = await response.json();
+    console.log('apiService: Received comment response from backend:', data);
+    return data;
+  };
+  
   return (
     <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
