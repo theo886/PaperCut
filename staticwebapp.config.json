@@ -25,7 +25,7 @@
   "auth": {
     "identityProviders": {
       "azureActiveDirectory": {
-        "userDetailsClaim": "preferred_username",
+        "userDetailsClaim": "name",
         "registration": {
           "openIdIssuer": "https://login.microsoftonline.com/43e5dc39-9e1f-4979-b674-674ace58ff9a/v2.0",
           "clientIdSettingName": "AZURE_CLIENT_ID",

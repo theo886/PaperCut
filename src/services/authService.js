@@ -41,7 +41,7 @@ const authService = {
       
       // Add display name if not present (for easier reference in UI)
       if (clientPrincipal && clientPrincipal.userDetails) {
-        clientPrincipal.displayName = clientPrincipal.name;
+        clientPrincipal.displayName = clientPrincipal.fullName || clientPrincipal.userDetails;
       }
       
       return clientPrincipal;
