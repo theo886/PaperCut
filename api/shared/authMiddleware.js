@@ -24,7 +24,7 @@ const authenticate = (req) => {
     if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
         console.log("All available claims:", JSON.stringify(clientPrincipal.claims));
         
-        // Look for the "name" claim
+        // Look for the "name" claim - same as what works in the frontend
         const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
         console.log('Name claim:', nameClaim ? JSON.stringify(nameClaim) : 'not found');
         if (nameClaim && nameClaim.val) {
@@ -32,7 +32,7 @@ const authenticate = (req) => {
             console.log('Found name claim, setting fullName to:', fullName);
         }
   
-        // Look for given name
+        // Get first name for initial
         const firstNameClaim = clientPrincipal.claims.find(
             claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' || 
                     claim.typ === 'given_name'
@@ -43,7 +43,7 @@ const authenticate = (req) => {
             console.log('Found first name claim, setting firstName to:', firstName);
         }
   
-        // Look for surname
+        // Get last name (only storing for completeness)
         const lastNameClaim = clientPrincipal.claims.find(
             claim => claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' || 
                     claim.typ === 'family_name'
@@ -54,34 +54,7 @@ const authenticate = (req) => {
             console.log('Found last name claim, setting lastName to:', lastName);
         }
         
-        // If we still don't have a full name but we have first and last, combine them
-        if (fullName === "NameMissing" && firstName && lastName) {
-            fullName = `${firstName} ${lastName}`;
-            console.log('Constructed fullName from first and last name:', fullName);
-        } else if (fullName === "NameMissing" && firstName) {
-            fullName = firstName;
-            console.log('Using firstName as fallback for fullName:', fullName);
-        }
-        
-        // Try to find ANY name-like claim if we still don't have one
-        if (fullName === "NameMissing") {
-            console.log('Still missing name, checking all claims for anything name-like');
-            const nameRelatedClaims = clientPrincipal.claims.filter(claim => 
-                claim.typ.toLowerCase().includes('name') && claim.val && claim.val.trim() !== ''
-            );
-            console.log('Name-related claims found:', nameRelatedClaims.length);
-            if (nameRelatedClaims.length > 0) {
-                nameRelatedClaims.forEach(claim => {
-                    console.log(`Potential name claim: ${claim.typ} = ${claim.val}`);
-                });
-                // Use the first one we find
-                const bestClaimMatch = nameRelatedClaims[0];
-                if (bestClaimMatch) {
-                    fullName = bestClaimMatch.val;
-                    console.log('Using alternative name claim:', fullName);
-                }
-            }
-        }
+        // No fallbacks - just use name or NameMissing
     }
     
     const userData = {
