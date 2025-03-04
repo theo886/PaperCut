@@ -8,9 +8,11 @@ module.exports = async function (context, req) {
     try {
         // Get the current user information from the request using the authenticate middleware
         let userData;
+        console.log('About to call authenticate');
         try {
             userData = authenticate(req);
         } catch (error) {
+            console.log('Authentication error:', error);
             context.res = {
                 status: error.status || 401,
                 body: { message: error.message || "Authentication required" }
