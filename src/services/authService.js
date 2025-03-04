@@ -16,10 +16,12 @@ const authService = {
       
       // Extract full name from claims if available
       if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
-        // Look for "name" claim specifically - this contains the full name "Alex Theodossiou"
+        // Look for "name" claim specifically - this contains the full name
         const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
         if (nameClaim && nameClaim.val) {
           clientPrincipal.fullName = nameClaim.val;
+        } else {
+          clientPrincipal.fullName = "NameMissing";
         }
         
         // Also get first and last name for use in avatars etc.
@@ -39,9 +41,9 @@ const authService = {
         }
       }
       
-      // Add display name if not present (for easier reference in UI)
-      if (clientPrincipal && clientPrincipal.userDetails) {
-        clientPrincipal.displayName = clientPrincipal.fullName || clientPrincipal.userDetails;
+      // Set display name without falling back to userDetails/email
+      if (clientPrincipal) {
+        clientPrincipal.displayName = clientPrincipal.fullName || "NameMissing";
       }
       
       return clientPrincipal;
