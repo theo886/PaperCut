@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, UserX, Loader2, ChevronDown, Check } from 'lucide-react';
+import { X, UserX, Loader2, ChevronDown, Check, Paperclip } from 'lucide-react';
 import FileUploader, { AttachmentList } from './FileUploader';
+import apiService from '../services/apiService';
 
 // MultiSelectDropdown component inside the same file
 const MultiSelectDropdown = ({ options, selectedValues, onChange, label }) => {
@@ -249,7 +250,39 @@ const SuggestionForm = ({
           </div>
           */}
           
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center space-x-2">
+            <label className={`flex items-center justify-center p-2 text-gray-600 rounded-md cursor-pointer hover:bg-gray-100 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <Paperclip size={18} />
+              <input 
+                type="file" 
+                className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files.length === 0) return;
+                  
+                  const file = files[0];
+                  
+                  // Validate file size (max 20MB)
+                  if (file.size > 20 * 1024 * 1024) {
+                    alert('File size exceeds the maximum limit of 20MB');
+                    return;
+                  }
+                  
+                  apiService.uploadFile(file)
+                    .then(result => {
+                      handleFileUploaded(result);
+                      e.target.value = null;
+                    })
+                    .catch(error => {
+                      console.error('Error uploading file:', error);
+                      alert('Error uploading file: ' + (error.message || 'Unknown error'));
+                    });
+                }}
+                accept="*"
+                disabled={isSubmitting}
+              />
+            </label>
+            
             <button 
               type="submit"
               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
@@ -264,11 +297,6 @@ const SuggestionForm = ({
               )}
             </button>
           </div>
-          
-          <FileUploader 
-            onFileUploaded={handleFileUploaded} 
-            disabled={isSubmitting}
-          />
           
           <AttachmentList 
             attachments={attachments} 
