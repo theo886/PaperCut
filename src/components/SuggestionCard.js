@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronUp, GitMerge, Lock, Pin } from 'lucide-react';
-import { formatDate } from '../utils/formatters';
+import { formatRelativeTime } from '../utils/formatters';
 
 const SuggestionCard = ({ 
   suggestion, 
@@ -105,7 +105,7 @@ const SuggestionCard = ({
             <div className={`h-6 w-6 min-w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
               {suggestion.authorInitial}
             </div>
-            <span>{formatDate(suggestion.timestamp)}</span>
+            <span>{formatRelativeTime(suggestion.timestamp)}</span>
           </div>
         </div>
       </div>

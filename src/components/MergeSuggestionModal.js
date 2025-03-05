@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, GitMerge } from 'lucide-react';
-import { formatDate } from '../utils/formatters';
+import { formatRelativeTime } from '../utils/formatters';
 
 const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSuggestions, onMerge, isLoading }) => {
   const [selectedSourceId, setSelectedSourceId] = useState('');
@@ -63,7 +63,7 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
                 : targetSuggestion.description}
             </div>
             <div className="mt-2 text-xs text-gray-400">
-              Votes: {targetSuggestion.votes} | Status: {targetSuggestion.status} | Created: {formatDate(targetSuggestion.timestamp)}
+              Votes: {targetSuggestion.votes} | Status: {targetSuggestion.status} | Created: {formatRelativeTime(targetSuggestion.timestamp)}
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@ const MergeSuggestionModal = ({ isOpen, onClose, targetSuggestion, availableSugg
                           : suggestion.description}
                       </div>
                       <div className="mt-2 text-xs text-gray-400">
-                        Votes: {suggestion.votes} | Status: {suggestion.status} | Created: {formatDate(suggestion.timestamp)}
+                        Votes: {suggestion.votes} | Status: {suggestion.status} | Created: {formatRelativeTime(suggestion.timestamp)}
                       </div>
                     </div>
                   </div>
