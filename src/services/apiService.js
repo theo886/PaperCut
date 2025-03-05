@@ -279,6 +279,38 @@ const apiService = {
       console.error('Error fetching dashboard metrics:', error);
       throw error;
     }
+  },
+  
+  // Delete a comment
+  deleteComment: async (suggestionId, commentId) => {
+    try {
+      const response = await fetch(`/api/suggestions/${suggestionId}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error deleting comment ${commentId}:`, error);
+      throw error;
+    }
+  },
+  
+  // Like a comment
+  likeComment: async (suggestionId, commentId) => {
+    try {
+      const response = await fetch(`/api/suggestions/${suggestionId}/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Error liking comment ${commentId}:`, error);
+      throw error;
+    }
   }
 };
 
