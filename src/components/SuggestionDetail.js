@@ -469,61 +469,60 @@ const SuggestionDetail = ({
                 ></textarea>
                   {/* Anonymous checkbox - commented out for now
                 <div className="flex items-center justify-between mt-2">
-               
-                  <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <input 
-                      type="checkbox" 
-                      className="mr-2"
-                      checked={commentAnonymously}
-                      onChange={() => setCommentAnonymously(!commentAnonymously)}
-                      disabled={suggestion.isLocked}
-                      
-                    Post anonymously
-                  </label>
+                   <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
+                     <input 
+                       type="checkbox" 
+                       className="mr-2"
+                       checked={commentAnonymously}
+                       onChange={() => setCommentAnonymously(!commentAnonymously)}
+                       disabled={suggestion.isLocked}
+                     />
+                     Post anonymously
+                   </label>
+                </div>
                   */}
-                  <div className="flex items-center">
-                    <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const files = e.target.files;
-                          if (files.length === 0) return;
+                <div className="flex items-center">
+                  <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (files.length === 0) return;
+                        
+                        const file = files[0];
+                        
+                        // Validate file size (max 20MB)
+                        if (file.size > 20 * 1024 * 1024) {
+                          alert('File size exceeds the maximum limit of 20MB');
+                          return;
+                        }
+                        
+                        try {
+                          // Upload the file using the apiService
+                          const result = await apiService.uploadFile(file);
                           
-                          const file = files[0];
+                          // Add the uploaded file to comment attachments
+                          handleCommentFileUploaded(result);
                           
-                          // Validate file size (max 20MB)
-                          if (file.size > 20 * 1024 * 1024) {
-                            alert('File size exceeds the maximum limit of 20MB');
-                            return;
-                          }
-                          
-                          try {
-                            // Upload the file using the apiService
-                            const result = await apiService.uploadFile(file);
-                            
-                            // Add the uploaded file to comment attachments
-                            handleCommentFileUploaded(result);
-                            
-                            // Reset the input
-                            e.target.value = null;
-                          } catch (error) {
-                            alert(error.message || 'Error uploading file');
-                            console.error('Error uploading file:', error);
-                          }
-                        }}
-                        disabled={suggestion.isLocked}
-                      />
-                    </label>
-                    <button
-                      type="submit"
-                      className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
-                      disabled={!comment.trim() || suggestion.isLocked}
-                    >
-                      Comment
-                    </button>
-                  </div>
+                          // Reset the input
+                          e.target.value = null;
+                        } catch (error) {
+                          alert(error.message || 'Error uploading file');
+                          console.error('Error uploading file:', error);
+                        }
+                      }}
+                      disabled={suggestion.isLocked}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
+                    disabled={!comment.trim() || suggestion.isLocked}
+                  >
+                    Comment
+                  </button>
                 </div>
                 
                 {!suggestion.isLocked && (
