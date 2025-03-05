@@ -32,12 +32,11 @@ module.exports = async function (context, req) {
 
         // Determine the author name - use fullName if available, otherwise use "NameMissing"
         const authorName = isAnonymous ? "Anonymous" : 
-                          (userData.fullName || "NameMissing");
+                          (userData.userDetails|| "NameMissing");
         
         // Get initial for avatar - use first name's initial when available
         const authorInitial = isAnonymous ? "?" : 
-                             (userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
-                             authorName.charAt(0).toUpperCase());
+                             authorName.charAt(0).toUpperCase();
 
         const timestamp = new Date().toISOString();
         const container = await getContainer();
