@@ -88,7 +88,7 @@ module.exports = async function (context, req) {
         }
         
         // Get user's display name - use fullName if available, otherwise fallback to "NameMissing"
-        const displayName = userData.userDetails| "NameMissing";
+        const displayName = userData.userDetails || "NameMissing";
         // Get user's initial - prefer first name initial if available
         const userInitial = displayName.charAt(0).toUpperCase();
         

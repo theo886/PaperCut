@@ -413,16 +413,16 @@ const SuggestionDetail = ({
                   disabled={suggestion.isLocked}
                 ></textarea>
                 <div className="flex items-center justify-between mt-2">
-                  <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <input 
-                      type="checkbox" 
-                      className="mr-2"
-                      checked={commentAnonymously}
-                      onChange={() => setCommentAnonymously(!commentAnonymously)}
-                      disabled={suggestion.isLocked}
-                    />
-                    Post anonymously
-                  </label>
+                  //<label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
+                    //input 
+                      //type="checkbox" 
+                      //className="mr-2"
+                      //checked={commentAnonymously}
+                      //onChange={() => setCommentAnonymously(!commentAnonymously)}
+                      //disabled={suggestion.isLocked}
+                   //   
+                    //Post anonymously
+                  //</label>
                   <div className="flex items-center">
                     <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
