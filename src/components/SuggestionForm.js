@@ -184,13 +184,6 @@ const SuggestionForm = ({
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-medium">Make a suggestion</h2>
-          //<button 
-            //onClick={onCancel}
-            //</div>className="text-gray-500 hover:text-gray-700"
-            //</div>disabled={isSubmitting}
-         //</div> >
-            //<X size={20} />
-          </button>
         </div>
         
         <form onSubmit={handleSubmit}>
@@ -238,31 +231,25 @@ const SuggestionForm = ({
             />
           </div>
           
+          {/* Anonymous checkbox - commented out for now
           <div className="flex items-center mb-6">
             <div className="flex items-center">
-              //<input 
-             //   type="checkbox" 
-              //  id="anonymousSubmit" 
-              //  checked={submitAnonymously}
-              //  onChange={() => setSubmitAnonymously(!submitAnonymously)}
-              //  className="mr-2"
-              //  disabled={isSubmitting}
+              <input 
+                type="checkbox" 
+                id="anonymousSubmit" 
+                checked={submitAnonymously}
+                onChange={() => setSubmitAnonymously(!submitAnonymously)}
+                className="mr-2"
+                disabled={isSubmitting}
               />
-              //<label htmlFor="anonymousSubmit" className="text-sm text-gray-600 flex items-center">
-              //  <UserX size={16} className="mr-1" /> Submit anonymously
-              //</label>
+              <label htmlFor="anonymousSubmit" className="text-sm text-gray-600 flex items-center">
+                <UserX size={16} className="mr-1" /> Submit anonymously
+              </label>
             </div>
           </div>
+          */}
           
           <div className="flex justify-end">
-            <button 
-              type="button"
-              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 mr-2"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
             <button 
               type="submit"
               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center"
