@@ -2,23 +2,6 @@ const { getContainer } = require('../shared/cosmosClient');
 const { v4: uuidv4 } = require('uuid');
 const { authenticate } = require('../shared/authMiddleware');
 
-// Helper function to format display names from emails - keep as fallback
-function formatDisplayName(email) {
-    if (!email) return '';
-    
-    // Check if it's already a name (not an email)
-    if (!email.includes('@')) {
-        return email;
-    }
-    
-    // Extract name part from email
-    const namePart = email.split('@')[0];
-    
-    // Replace dots, underscores, or hyphens with spaces and capitalize each word
-    return namePart
-        .replace(/[._-]/g, ' ')
-        .replace(/\b\w/g, l => l.toUpperCase());
-}
 
 module.exports = async function (context, req) {
     try {
@@ -86,44 +69,8 @@ module.exports = async function (context, req) {
         // Improved name handling logic
         let displayName = "Anonymous";
         if (!isAnonymous) {
-            // Use fullName as is, even if it's "NameMissing" to help with debugging
-            const rawFullName = userData.fullName || "";
-            
-            // DIRECT FIX: Use specific claim value we know is working from the logs
-            if (userData.firstName && userData.lastName) {
-                displayName = `${userData.firstName} ${userData.lastName}`;
-                context.log(' CSL Using firstName + lastName for displayName:', displayName);
-            }
-            // First try to use full name from auth if it's not "NameMissing"
-            else if (rawFullName && rawFullName !== "NameMissing") {
-                displayName = rawFullName;
-                context.log(' CSL Using fullName for displayName:', displayName);
-            } 
-            // Then try to use first name only
-            else if (userData.firstName) {
-                displayName = userData.firstName;
-                context.log(' CSL Using firstName only for displayName:', displayName);
-            }
-            // Then fallback to formatted email
-            else {
-                // DIRECT FIX: Hardcode a better fallback if all else fails
-                // We can see from logs that your userDetails contains the email
-                const email = userData.userDetails || "";
-                if (email.includes('@')) {
-                    const emailName = email.split('@')[0];
-                    // Special case for "atheo@energyrecovery.com" → "Alex Theodossiou"
-                    if (emailName.toLowerCase() === 'atheo') {
-                        displayName = "Alex Theodossiou";
-                        context.log(' CSL Using hardcoded name for atheo@energyrecovery.com');
-                    } else {
-                        displayName = formatDisplayName(email);
-                        context.log(' CSL Using formatted userDetails for displayName:', displayName);
-                    }
-                } else {
-                    displayName = formatDisplayName(userData.userDetails);
-                    context.log(' CSL Using formatted userDetails for displayName:', displayName);
-                }
-            }
+                           displayName = userData.userDetails;
+            context.log(' CSL Using formatted userDetails for displayName:', displayName);
         } else {
             context.log(' CSL Comment is anonymous, using "Anonymous" for displayName');
         }
