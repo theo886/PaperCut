@@ -278,7 +278,7 @@ const SuggestionDetail = ({
           </div>
           
           <div>
-            <h4 className="text-sm text-gray-500 mb-1">submitted this idea by</h4>
+            <h4 className="text-sm text-gray-500 mb-1">submitted by</h4>
             <div className="flex items-center">
               <div className={`h-6 w-6 min-w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
                 {suggestion.authorInitial}
