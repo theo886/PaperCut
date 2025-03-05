@@ -22,15 +22,15 @@ function formatDisplayName(email) {
 
 module.exports = async function (context, req) {
     try {
-        context.log('=== ADD COMMENT FUNCTION START ===');
+        context.log(' CSL === ADD COMMENT FUNCTION START ===');
         const id = context.bindingData.id;
         
-        context.log('Request headers:', JSON.stringify(req.headers));
-        context.log('Request body:', JSON.stringify(req.body));
-        context.log('Request ID:', id);
+        context.log(' CSL Request headers:', JSON.stringify(req.headers));
+        context.log(' CSL Request body:', JSON.stringify(req.body));
+        context.log(' CSL Request ID:', id);
         
         if (!id) {
-            context.log('Missing suggestion ID');
+            context.log(' CSL Missing suggestion ID');
             context.res = {
                 status: 400,
                 body: { message: "Suggestion ID is required" }
@@ -41,9 +41,9 @@ module.exports = async function (context, req) {
         // Get the current user information from the request
         let userData;
         try {
-            context.log('Calling authenticate() to get user data');
+            context.log(' CSL Calling authenticate() to get user data');
             userData = authenticate(req);
-            context.log('User authenticated:', JSON.stringify(userData));
+            context.log(' CSL User authenticated:', JSON.stringify(userData));
         } catch (error) {
             context.log.error('Authentication error:', error);
             context.res = {
@@ -55,7 +55,7 @@ module.exports = async function (context, req) {
         
         const { text, isAnonymous, attachments } = req.body;
         
-        context.log('Extracted data:', { 
+        context.log(' CSL Extracted data:', { 
             text, 
             textType: typeof text, 
             isObject: typeof text === 'object',
@@ -66,7 +66,7 @@ module.exports = async function (context, req) {
         });
         
         if (!text) {
-            context.log('Missing comment text');
+            context.log(' CSL Missing comment text');
             context.res = {
                 status: 400,
                 body: { message: "Comment text is required" }
@@ -75,7 +75,7 @@ module.exports = async function (context, req) {
         }
         
         // Get user's display name - use fullName if available, otherwise fallback to userDetails
-        context.log('Using display name:', { 
+        context.log(' CSL Using display name:', { 
             fullName: userData.fullName, 
             nameStatus: userData.fullName !== "NameMissing",
             userDetails: userData.userDetails,
@@ -92,17 +92,17 @@ module.exports = async function (context, req) {
             // DIRECT FIX: Use specific claim value we know is working from the logs
             if (userData.firstName && userData.lastName) {
                 displayName = `${userData.firstName} ${userData.lastName}`;
-                context.log('Using firstName + lastName for displayName:', displayName);
+                context.log(' CSL Using firstName + lastName for displayName:', displayName);
             }
             // First try to use full name from auth if it's not "NameMissing"
             else if (rawFullName && rawFullName !== "NameMissing") {
                 displayName = rawFullName;
-                context.log('Using fullName for displayName:', displayName);
+                context.log(' CSL Using fullName for displayName:', displayName);
             } 
             // Then try to use first name only
             else if (userData.firstName) {
                 displayName = userData.firstName;
-                context.log('Using firstName only for displayName:', displayName);
+                context.log(' CSL Using firstName only for displayName:', displayName);
             }
             // Then fallback to formatted email
             else {
@@ -114,18 +114,18 @@ module.exports = async function (context, req) {
                     // Special case for "atheo@energyrecovery.com" → "Alex Theodossiou"
                     if (emailName.toLowerCase() === 'atheo') {
                         displayName = "Alex Theodossiou";
-                        context.log('Using hardcoded name for atheo@energyrecovery.com');
+                        context.log(' CSL Using hardcoded name for atheo@energyrecovery.com');
                     } else {
                         displayName = formatDisplayName(email);
-                        context.log('Using formatted userDetails for displayName:', displayName);
+                        context.log(' CSL Using formatted userDetails for displayName:', displayName);
                     }
                 } else {
                     displayName = formatDisplayName(userData.userDetails);
-                    context.log('Using formatted userDetails for displayName:', displayName);
+                    context.log(' CSL Using formatted userDetails for displayName:', displayName);
                 }
             }
         } else {
-            context.log('Comment is anonymous, using "Anonymous" for displayName');
+            context.log(' CSL Comment is anonymous, using "Anonymous" for displayName');
         }
             
         // Get user's initial - prefer first name initial if available
@@ -134,7 +134,7 @@ module.exports = async function (context, req) {
             : displayName.charAt(0).toUpperCase();
         
         // Log the user info for debugging
-        context.log('Final user info for comment:', { 
+        context.log(' CSL Final user info for comment:', { 
             displayName, 
             userInitial, 
             fullName: userData.fullName,
@@ -156,7 +156,7 @@ module.exports = async function (context, req) {
             ]
         };
         
-        context.log('Querying CosmosDB for suggestion:', querySpec);
+        context.log(' CSL Querying CosmosDB for suggestion:', querySpec);
         const { resources } = await container.items.query(querySpec).fetchAll();
         
         if (resources.length === 0) {
@@ -169,7 +169,7 @@ module.exports = async function (context, req) {
         }
         
         const suggestion = resources[0];
-        context.log('Retrieved suggestion:', {
+        context.log(' CSL Retrieved suggestion:', {
             id: suggestion.id,
             title: suggestion.title,
             commentsCount: suggestion.comments ? suggestion.comments.length : 0
@@ -177,7 +177,7 @@ module.exports = async function (context, req) {
         
         // Check if suggestion is locked
         if (suggestion.isLocked) {
-            context.log('Suggestion is locked, cannot add comment');
+            context.log(' CSL Suggestion is locked, cannot add comment');
             context.res = {
                 status: 403,
                 body: { message: "This suggestion is locked and cannot receive new comments" }
@@ -201,25 +201,25 @@ module.exports = async function (context, req) {
         
         // Make sure text isn't accidentally a UUID (defensive check)
         if (typeof newComment.text === 'object') {
-            context.log('Warning: text was an object, converting to string representation');
+            context.log(' CSL Warning: text was an object, converting to string representation');
             newComment.text = JSON.stringify(newComment.text);
         }
         
-        context.log('New comment object prepared:', JSON.stringify(newComment));
+        context.log(' CSL New comment object prepared:', JSON.stringify(newComment));
         
         // Add the comment to the suggestion
         suggestion.comments.push(newComment);
         context.log(`Comment added to suggestion, now has ${suggestion.comments.length} comments`);
         
         // Update the suggestion in CosmosDB
-        context.log('Updating suggestion in CosmosDB');
+        context.log(' CSL Updating suggestion in CosmosDB');
         try {
             const { resource: updatedItem } = await container.item(id).replace(suggestion);
-            context.log('Successfully updated suggestion in CosmosDB');
+            context.log(' CSL Successfully updated suggestion in CosmosDB');
             
             // Log the first comment from the updated item to verify it was saved correctly
             const latestComment = updatedItem.comments[updatedItem.comments.length - 1];
-            context.log('Latest comment from updated item:', JSON.stringify(latestComment));
+            context.log(' CSL Latest comment from updated item:', JSON.stringify(latestComment));
             
             context.res = {
                 status: 201,
@@ -228,7 +228,7 @@ module.exports = async function (context, req) {
                 },
                 body: updatedItem
             };
-            context.log('=== ADD COMMENT FUNCTION END ===');
+            context.log(' CSL === ADD COMMENT FUNCTION END ===');
         } catch (dbError) {
             context.log.error('Error updating suggestion in CosmosDB:', dbError);
             throw dbError;
@@ -242,6 +242,6 @@ module.exports = async function (context, req) {
             },
             body: { message: 'Error adding comment', error: error.message }
         };
-        context.log('=== ADD COMMENT FUNCTION END WITH ERROR ===');
+        context.log(' CSL === ADD COMMENT FUNCTION END WITH ERROR ===');
     }
 };
