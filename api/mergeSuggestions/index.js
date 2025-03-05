@@ -96,10 +96,9 @@ module.exports = async function (context, req) {
         const targetSuggestion = targetResources[0];
         
         // Get user's display name - use fullName if available, otherwise fallback to "NameMissing"
-        const displayName = userData.fullName || "NameMissing";
+        const displayName = userData.userDetails|| "Admin";
         // Get user's initial - prefer first name initial if available
-        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
-                         displayName.charAt(0).toUpperCase();
+        const userInitial =displayName.charAt(0).toUpperCase();
         
         // Prepare the merge action activity entry
         const mergeActivity = {

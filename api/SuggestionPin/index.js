@@ -88,10 +88,9 @@ module.exports = async function (context, req) {
         }
         
         // Get user's display name - use fullName if available, otherwise fallback to "NameMissing"
-        const displayName = userData.fullName || "NameMissing";
+        const displayName = userData.userDetails| "NameMissing";
         // Get user's initial - prefer first name initial if available
-        const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
-                         displayName.charAt(0).toUpperCase();
+        const userInitial = displayName.charAt(0).toUpperCase();
         
         suggestion.activity.push({
             id: Date.now().toString(),
