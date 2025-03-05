@@ -75,6 +75,8 @@ const apiService = {
   // Create a new suggestion
   createSuggestion: async (suggestionData) => {
     try {
+      console.log('Sending suggestion creation request to API:', suggestionData);
+      
       const response = await fetch('/api/suggestions', {
         method: 'POST',
         headers: {
@@ -82,9 +84,54 @@ const apiService = {
         },
         body: JSON.stringify(suggestionData)
       });
-      return handleResponse(response);
+      
+      console.log('Received API response with status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response from createSuggestion API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        
+        // Try to parse as JSON if possible
+        let errorJson;
+        try {
+          errorJson = JSON.parse(errorText);
+          console.error('Parsed error JSON:', errorJson);
+        } catch (e) {
+          console.error('Could not parse error as JSON, raw text:', errorText);
+          // Not JSON, use as is
+        }
+        
+        const error = new Error(
+          errorJson?.message || 
+          `API error (${response.status}): ${response.statusText}`
+        );
+        error.response = response;
+        error.data = errorJson;
+        error.statusCode = response.status;
+        error.fullDetails = {
+          status: response.status,
+          statusText: response.statusText,
+          errorData: errorJson || errorText
+        };
+        throw error;
+      }
+      
+      const data = await response.json();
+      console.log('Successful response from createSuggestion API:', data);
+      return data;
     } catch (error) {
-      console.error('Error creating suggestion:', error);
+      console.error('Exception in createSuggestion:', error);
+      console.error('Error stack:', error.stack);
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.error('Network error detected - possibly CORS or connectivity issue');
+        throw new Error('Network error: could not connect to the API. Please check your connection and try again.');
+      }
+      
       throw error;
     }
   },

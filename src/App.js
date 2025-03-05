@@ -264,16 +264,56 @@ function AppContent() {
   const createSuggestion = async (suggestionData) => {
     try {
       setLoading(true);
+      console.log('Creating suggestion with data:', suggestionData);
+      
       const newSuggestion = await apiService.createSuggestion(suggestionData);
+      console.log('API response from createSuggestion:', newSuggestion);
+      
+      // Verify we have a valid suggestion object
+      if (!newSuggestion || !newSuggestion.id) {
+        console.error('API returned invalid suggestion object:', newSuggestion);
+        throw new Error('Received invalid response from server');
+      }
       
       // Add to suggestions list
       setSuggestions([newSuggestion, ...suggestions]);
       
       // Navigate back to list view
       setView('list');
+      
+      console.log('Suggestion successfully created and added to state');
     } catch (error) {
       console.error('Error creating suggestion:', error);
-      alert('Failed to create suggestion. Please try again later.');
+      
+      // More detailed error information
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        try {
+          const errorData = await error.response.text();
+          console.error('Error response data:', errorData);
+          try {
+            // Also try to parse as JSON 
+            const jsonData = JSON.parse(errorData);
+            console.error('Parsed JSON error data:', jsonData);
+          } catch (e) {
+            // Not JSON
+          }
+        } catch (e) {
+          console.error('Could not read error response:', e);
+        }
+      }
+      
+      // Show a more specific error message
+      const errorMessage = 
+        error.fullDetails 
+          ? `API error (${error.fullDetails.status}): ${error.fullDetails.errorData?.message || error.fullDetails.statusText}` 
+          : error.message || 'Unknown error';
+          
+      alert(`Failed to create suggestion: ${errorMessage}. Please try again later or check browser console for details.`);
     } finally {
       setLoading(false);
     }
