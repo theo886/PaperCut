@@ -240,17 +240,17 @@ const SuggestionForm = ({
           
           <div className="flex items-center mb-6">
             <div className="flex items-center">
-              <input 
-                type="checkbox" 
-                id="anonymousSubmit" 
-                checked={submitAnonymously}
-                onChange={() => setSubmitAnonymously(!submitAnonymously)}
-                className="mr-2"
-                disabled={isSubmitting}
+              //<input 
+             //   type="checkbox" 
+              //  id="anonymousSubmit" 
+              //  checked={submitAnonymously}
+              //  onChange={() => setSubmitAnonymously(!submitAnonymously)}
+              //  className="mr-2"
+              //  disabled={isSubmitting}
               />
-              <label htmlFor="anonymousSubmit" className="text-sm text-gray-600 flex items-center">
-                <UserX size={16} className="mr-1" /> Submit anonymously
-              </label>
+              //<label htmlFor="anonymousSubmit" className="text-sm text-gray-600 flex items-center">
+              //  <UserX size={16} className="mr-1" /> Submit anonymously
+              //</label>
             </div>
           </div>
           
