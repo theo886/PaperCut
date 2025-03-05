@@ -18,7 +18,8 @@ const SuggestionDetail = ({
   onLock,
   onPin,
   currentUser,
-  allSuggestions = []
+  allSuggestions = [],
+  onCommentDeleted
 }) => {
   // Add state for menu visibility
   const [showMenu, setShowMenu] = useState(false);
@@ -116,9 +117,14 @@ const SuggestionDetail = ({
     }
     
     try {
+      // Get the updated suggestion from the API
       const updatedSuggestion = await apiService.deleteComment(suggestion.id, commentId);
-      // Update the suggestion with the new data
-      onAddComment(updatedSuggestion);
+      console.log('Comment deleted, updated suggestion:', updatedSuggestion);
+      
+      // Pass the updated suggestion to the parent component
+      if (typeof onCommentDeleted === 'function') {
+        onCommentDeleted(updatedSuggestion);
+      }
     } catch (error) {
       console.error('Error deleting comment:', error);
       alert('Failed to delete the comment. Please try again.');

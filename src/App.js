@@ -441,6 +441,29 @@ function AppContent() {
       return dateB - dateA;
     });
 
+  // Handle comment deletion by updating the suggestion with the deleted comment
+  const handleCommentDeleted = async (updatedSuggestion) => {
+    try {
+      console.log('Processing deleted comment, updated suggestion:', updatedSuggestion);
+      
+      // Update the suggestions list with the updated suggestion
+      const updatedSuggestions = suggestions.map(s => {
+        if (s.id === updatedSuggestion.id) {
+          return updatedSuggestion;
+        }
+        return s;
+      });
+      
+      setSuggestions(updatedSuggestions);
+      setSelectedSuggestion(updatedSuggestion);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error processing deleted comment:', error);
+      setError('Failed to process the deleted comment.');
+      setLoading(false);
+    }
+  };
+
   // Render different views based on state
   switch (view) {
     case 'dashboard':
@@ -499,6 +522,7 @@ function AppContent() {
               onPin={pinSuggestion}
               currentUser={userInfo}
               allSuggestions={suggestions}
+              onCommentDeleted={handleCommentDeleted}
             />
           )}
         </div>
