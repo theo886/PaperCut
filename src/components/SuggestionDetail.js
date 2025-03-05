@@ -430,16 +430,16 @@ const SuggestionDetail = ({
                     {/* Like button */}
                     <button 
                       onClick={() => handleLikeComment(comment.id)}
-                      className={`flex items-center mr-4 ${comment.likedBy && comment.likedBy.includes(currentUser?.userId) ? 'text-indigo-600' : 'hover:text-indigo-600'}`}
+                      className={`flex items-center mr-4 ${comment.likedBy && comment.likedBy.includes(currentUser?.id) ? 'text-indigo-600' : 'hover:text-indigo-600'}`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill={comment.likedBy && comment.likedBy.includes(currentUser?.userId) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill={comment.likedBy && comment.likedBy.includes(currentUser?.id) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                       </svg>
                       <span>{comment.likes || 0}</span>
                     </button>
                     
                     {/* Delete button - only show if current user is comment author or admin */}
-                    {(isAdmin || (currentUser && comment.authorId === currentUser.userId)) && (
+                    {(isAdmin || (currentUser && comment.authorId === currentUser.id)) && (
                       <button 
                         onClick={() => handleDeleteComment(comment.id)}
                         className="flex items-center text-gray-500 hover:text-red-600"

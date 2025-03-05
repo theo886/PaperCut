@@ -60,16 +60,28 @@ module.exports = async function (context, req) {
             comment.likedBy = [];
         }
         
+        // Log comment and user information for debugging
+        context.log('Comment:', comment);
+        context.log('User data:', userData);
+        context.log('User ID:', userData.userId);
+        context.log('likedBy array:', comment.likedBy);
+        context.log('likedByIndex:', likedByIndex);
+        
         // Toggle like status
         if (likedByIndex === -1) {
             // Add user to likedBy array and increment likes count
             comment.likedBy.push(userData.userId);
             comment.likes = (comment.likes || 0) + 1;
+            context.log('Added user to likedBy array');
         } else {
             // Remove user from likedBy array and decrement likes count
             comment.likedBy.splice(likedByIndex, 1);
             comment.likes = Math.max(0, (comment.likes || 1) - 1);
+            context.log('Removed user from likedBy array');
         }
+        
+        // Log the updated comment
+        context.log('Updated comment:', comment);
         
         // Update the suggestion
         const { resource: updatedSuggestion } = await container.item(suggestionId).replace(suggestion);
