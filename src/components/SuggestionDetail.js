@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Edit, MessageCircle, Activity, GitMerge, Paperclip, MoreVertical, Trash, Lock, Pin } from 'lucide-react';
-import { formatDate } from '../utils/formatters';
+import { formatDate, formatRelativeTime } from '../utils/formatters';
 import MergeSuggestionModal from './MergeSuggestionModal';
 import FileUploader, { AttachmentList, Attachment } from './FileUploader';
 import apiService from '../services/apiService';
@@ -410,7 +410,7 @@ const SuggestionDetail = ({
                         <GitMerge size={10} className="mr-1" /> Merged suggestion description
                       </span>
                     )}
-                    <span className="text-gray-400 text-sm ml-2">{formatDate(comment.timestamp)}</span>
+                    <span className="text-gray-400 text-sm ml-2">{formatRelativeTime(comment.timestamp)}</span>
                   </div>
                   <p className={`mt-1 ${comment.isMergeDescription ? 'text-gray-800' : 'text-gray-700'}`}>
                     {comment.text}
@@ -558,7 +558,7 @@ const SuggestionDetail = ({
                 <div key={merged.id} className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
                   <div className="font-medium">{merged.title}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Merged on {formatDate(merged.timestamp)}
+                    Merged on {formatRelativeTime(merged.timestamp)}
                   </div>
                 </div>
               ))}
@@ -595,7 +595,7 @@ const SuggestionDetail = ({
                         <span className="font-medium">{activity.author}</span> changed status from{' '}
                         <span className="font-medium">{activity.from}</span> to{' '}
                         <span className="font-medium">{activity.to}</span>
-                        <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
+                        <div className="text-gray-400 text-xs mt-1">{formatRelativeTime(activity.timestamp)}</div>
                       </div>
                     )}
                     {activity.type === 'merge' && (
@@ -603,7 +603,7 @@ const SuggestionDetail = ({
                         <span className="font-medium">{activity.author}</span> merged suggestion{' '}
                         <span className="font-medium">{activity.sourceTitle}</span>{' '}
                         into this
-                        <div className="text-gray-400 text-xs mt-1">{formatDate(activity.timestamp)}</div>
+                        <div className="text-gray-400 text-xs mt-1">{formatRelativeTime(activity.timestamp)}</div>
                       </div>
                     )}
                   </div>
