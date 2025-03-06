@@ -30,7 +30,41 @@ function AppContent() {
       setLoading(true);
       setError(null);
       const data = await apiService.getSuggestions();
-      setSuggestions(data);
+      
+      // Log all suggestions for debugging
+      console.log(`Received ${data?.length || 0} suggestions from API`);
+      
+      // Check for and handle empty or invalid entries
+      if (Array.isArray(data)) {
+        // Identify any problematic entries
+        data.forEach((suggestion, index) => {
+          if (!suggestion || !suggestion.id) {
+            console.error(`Found invalid suggestion at index ${index}:`, suggestion);
+          } else if (!suggestion.title || !suggestion.description) {
+            console.warn(`Suggestion with ID ${suggestion.id} has missing title or description:`, suggestion);
+          }
+        });
+        
+        // Filter out invalid entries
+        const validSuggestions = data.filter(suggestion => 
+          suggestion && suggestion.id && suggestion.title && suggestion.description
+        );
+        
+        if (validSuggestions.length < data.length) {
+          console.warn(`Filtered out ${data.length - validSuggestions.length} invalid suggestions`);
+        }
+        
+        // Sort by timestamp descending to ensure newest suggestions appear first
+        const sortedSuggestions = [...validSuggestions].sort((a, b) => {
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+        
+        setSuggestions(sortedSuggestions);
+      } else {
+        console.error('API returned non-array data for suggestions:', data);
+        setError('Received invalid data format from server.');
+        setSuggestions([]);
+      }
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       setError('Failed to load suggestions. Please try again later.');
