@@ -99,7 +99,7 @@ module.exports = async function (context, req) {
         context.log('Updated comment:', comment);
         
         // Update the suggestion
-        const { resource: updatedSuggestion } = await container.item(suggestionId, suggestionId).replace(suggestion);
+        //const { resource: updatedSuggestion } = await container.item(suggestionId, suggestionId).replace(suggestion);
         
         context.res = {
             status: 200,
