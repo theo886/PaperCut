@@ -718,18 +718,18 @@ const SuggestionDetail = ({
 
         {/* Activity section */}
         <div className="mt-8">
-          <h3 className="font-medium mb-3 flex items-center justify-between">
+          <h3 className="font-medium mb-3 flex items-center">
             <div className="flex items-center">
               <Activity size={18} className="mr-1" /> 
               Activity
+              <button 
+                onClick={() => setActivityExpanded(!activityExpanded)} 
+                className="ml-2 flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                aria-label={activityExpanded ? "Collapse activity" : "Expand activity"}
+              >
+                {activityExpanded ? "-" : "+"}
+              </button>
             </div>
-            <button 
-              onClick={() => setActivityExpanded(!activityExpanded)} 
-              className="flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
-              aria-label={activityExpanded ? "Collapse activity" : "Expand activity"}
-            >
-              {activityExpanded ? "-" : "+"}
-            </button>
           </h3>
           
           {activityExpanded && (
