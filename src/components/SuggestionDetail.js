@@ -96,6 +96,17 @@ const SuggestionDetail = ({
   
   const handleCommentFileUploaded = (fileInfo) => {
     console.log('Comment file uploaded:', fileInfo);
+    if (!fileInfo.name && !fileInfo.originalName) {
+      console.warn('File missing name property:', fileInfo);
+      // Add name if missing
+      if (fileInfo.url) {
+        // Extract name from URL as fallback
+        const urlParts = fileInfo.url.split('/');
+        fileInfo.name = urlParts[urlParts.length - 1] || 'Attachment';
+      } else {
+        fileInfo.name = 'Attachment';
+      }
+    }
     setCommentAttachments([...commentAttachments, fileInfo]);
   };
   
@@ -679,7 +690,7 @@ const SuggestionDetail = ({
                     {commentAttachments.map((attachment, index) => (
                       <div key={index} className="flex items-center bg-gray-50 p-1 rounded">
                         <Paperclip size={14} className="mr-1 text-gray-500" />
-                        <span className="text-sm text-gray-700 truncate flex-grow">{attachment.name}</span>
+                        <span className="text-sm text-gray-700 truncate flex-grow">{attachment.name || attachment.originalName || 'Attachment'}</span>
                         <button 
                           type="button"
                           onClick={() => handleRemoveCommentAttachment(index)}

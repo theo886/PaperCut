@@ -44,7 +44,10 @@ const apiService = {
         body: JSON.stringify({ file: fileData })
       });
       
-      return handleResponse(response);
+      const result = await handleResponse(response);
+      // Add original filename to the result
+      result.name = file.name;
+      return result;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;

@@ -63,6 +63,8 @@ module.exports = async function (context, req) {
         
         // Add information about the file type
         result.isImage = isImage(file.contentType);
+        // Preserve the original filename
+        result.originalName = file.name;
         
         context.res = {
             status: 200,
