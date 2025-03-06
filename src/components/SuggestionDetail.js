@@ -241,6 +241,7 @@ const SuggestionDetail = ({
           >
             <ChevronLeft size={18} /> Back
           </button>
+          <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
           
           
           {/* 3-dot menu */}
@@ -320,9 +321,8 @@ const SuggestionDetail = ({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div>
-            <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
-          </div>
+          
+           
           <div>
             <h4 className="text-sm text-gray-500 mb-1">Status</h4>
             {isAdmin ? (
