@@ -625,6 +625,8 @@ const SuggestionDetail = ({
                 </div>
                   */}
                 <div className="flex items-center">
+                  <div className="flex-grow"></div>
+                  
                   <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
                     <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
                     <input
@@ -661,8 +663,6 @@ const SuggestionDetail = ({
                     />
                   
                   </label>
-                  
-                  <div className="flex-grow"></div>
                   
                   <button 
                     type="submit" 
