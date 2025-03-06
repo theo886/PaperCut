@@ -13,9 +13,18 @@ const authService = {
       // Enhanced logging to see the full structure
       console.log("Full auth payload:", payload);
       console.log("Client principal data:", clientPrincipal);
+      console.log("UserDetails value:", clientPrincipal?.userDetails);
       
-      // Extract full name from claims if available
       if (clientPrincipal && clientPrincipal.claims && Array.isArray(clientPrincipal.claims)) {
+        console.log("All claims:", clientPrincipal.claims);
+        
+        // Look for email claims in various formats
+        const emailClaims = clientPrincipal.claims.filter(claim => 
+          claim.typ.toLowerCase().includes('email') || 
+          claim.typ.includes('upn')
+        );
+        console.log("Potential email claims:", emailClaims);
+        
         // Look for "name" claim specifically - this contains the full name
         const nameClaim = clientPrincipal.claims.find(claim => claim.typ === 'name');
         if (nameClaim && nameClaim.val) {

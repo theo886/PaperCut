@@ -111,11 +111,17 @@ function AppContent() {
   const displayName = user.fullName || "NameMissing";
   console.log("Using display name:", displayName, "from user:", user);
   
+  // Debug output for userDetails
+  console.log("User details value being used for admin check:", user.userDetails);
+  
   // Check if user email is in the admin list
   const isAdmin = user && user.userDetails && 
-    adminEmails.some(email => 
-      email.toLowerCase() === user.userDetails.toLowerCase()
-    );
+    adminEmails.some(email => {
+      console.log(`Comparing ${email.toLowerCase()} with ${user.userDetails.toLowerCase()}`);
+      return email.toLowerCase() === user.userDetails.toLowerCase();
+    });
+
+  console.log("Is Admin:", isAdmin, "Admin Emails:", adminEmails);
 
   const userInfo = {
     id: user.userId,
