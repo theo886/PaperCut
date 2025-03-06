@@ -4,7 +4,7 @@ const errorHandler = require("../shared/errorHandler");
 
 module.exports = async function (context, req) {
     try {
-        context.log('Like Comment function processing a request');
+        context.log(' LIKE Like Comment function processing a request');
         
         // Get the suggestion ID and comment ID from route parameters
         const suggestionId = context.bindingData.suggestionId;
@@ -76,30 +76,30 @@ module.exports = async function (context, req) {
         }
         
         // Log comment and user information for debugging
-        context.log('Comment:', comment);
-        context.log('User data:', userData);
-        context.log('User ID:', userData.userId);
-        context.log('likedBy array:', comment.likedBy);
-        context.log('likedByIndex:', likedByIndex);
+        context.log(' LIKE Comment:', comment);
+        context.log(' LIKE User data:', userData);
+        context.log(' LIKE User ID:', userData.userId);
+        context.log(' LIKE likedBy array:', comment.likedBy);
+        context.log(' LIKE likedByIndex:', likedByIndex);
         
         // Toggle like status
         if (likedByIndex === -1) {
             // Add user to likedBy array and increment likes count
             comment.likedBy.push(userData.userId);
             comment.likes = (comment.likes || 0) + 1;
-            context.log('Added user to likedBy array');
+            context.log(' LIKE Added user to likedBy array');
         } else {
             // Remove user from likedBy array and decrement likes count
             comment.likedBy.splice(likedByIndex, 1);
             comment.likes = Math.max(0, (comment.likes || 1) - 1);
-            context.log('Removed user from likedBy array');
+            context.log(' LIKE Removed user from likedBy array');
         }
         
         // Log the updated comment
-        context.log('Updated comment:', comment);
+        context.log(' LIKE Updated comment:', comment);
         
         // Update the suggestion
-        //const { resource: updatedSuggestion } = await container.item(suggestionId, suggestionId).replace(suggestion);
+        const { resource: updatedSuggestion } = await container.item(suggestionId, suggestionId).replace(suggestion);
         
         context.res = {
             status: 200,
