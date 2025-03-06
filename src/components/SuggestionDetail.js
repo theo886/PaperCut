@@ -237,9 +237,10 @@ const SuggestionDetail = ({
         <div className="flex items-center mb-2">
           <button 
             onClick={onBack}
-            className="text-gray-500 hover:text-gray-700 mr-2"
+            className="text-gray-500 hover:text-gray-700 mr-2 flex items-center"
           >
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} />
+            <span>Back</span>
           </button>
           
           {/* 3-dot menu */}
