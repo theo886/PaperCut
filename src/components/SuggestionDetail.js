@@ -84,11 +84,11 @@ const SuggestionDetail = ({
     if (comment.trim()) {
       console.log('Submitting comment:', {
         suggestionId: suggestion.id,
-        text: comment,
+        commentText: comment,
         isAnonymous: commentAnonymously,
         attachments: commentAttachments
       });
-      onAddComment(suggestion.id, comment, commentAnonymously, commentAttachments);
+      onAddComment(comment, commentAnonymously, commentAttachments);
       setComment('');
       setCommentAttachments([]);
     }
