@@ -3,17 +3,17 @@ const { v4: uuidv4 } = require('uuid');
 const { authenticate } = require('../shared/authMiddleware');
 
 module.exports = async function (context, req) {
-    context.log('Create Suggestion function processing a request');
+    context.log(' XX Create Suggestion function processing a request');
     
     try {
         // Get the current user information from the request using the authenticate middleware
         let userData;
-        context.log('About to call authenticate');
+        context.log(' XX About to call authenticate');
         try {
             userData = authenticate(req);
-            context.log('Authentication successful, user data:', userData);
+            context.log(' XX Authentication successful, user data:', userData);
         } catch (error) {
-            context.log.error('Authentication error:', error);
+            context.log.error(' XX Authentication error:', error);
             context.res = {
                 status: error.status || 401,
                 body: { message: error.message || "Authentication required" }
@@ -21,7 +21,7 @@ module.exports = async function (context, req) {
             return;
         }
 
-        context.log('Request body:', req.body);
+        context.log(' XX Request body:', req.body);
         const { title, description, isAnonymous, attachments, departments } = req.body;
 
         if (!title || !description) {
@@ -43,13 +43,13 @@ module.exports = async function (context, req) {
 
         const timestamp = new Date().toISOString();
         
-        context.log('Getting container from cosmosClient');
+        context.log(' XX Getting container from cosmosClient');
         let container;
         try {
             container = await getContainer();
-            context.log('Container retrieved successfully');
+            context.log(' XX Container retrieved successfully');
         } catch (dbError) {
-            context.log.error('Error getting Cosmos DB container:', dbError);
+            context.log.error(' XX Error getting Cosmos DB container:', dbError);
             throw new Error(`Database connection error: ${dbError.message}`);
         }
 
@@ -75,7 +75,7 @@ module.exports = async function (context, req) {
             attachments: attachments || []
         };
         
-        context.log('Created suggestion object, about to save to database:', { 
+        context.log(' XX Created suggestion object, about to save to database:', { 
             id: newSuggestion.id,
             title: newSuggestion.title
         });
@@ -84,10 +84,10 @@ module.exports = async function (context, req) {
         try {
             const result = await container.items.create(newSuggestion);
             createdItem = result.resource;
-            context.log('Successfully saved suggestion to database, id:', createdItem.id);
+            context.log(' XX Successfully saved suggestion to database, id:', createdItem.id);
         } catch (dbError) {
-            context.log.error('Error saving to Cosmos DB:', dbError);
-            context.log.error('Error details:', {
+            context.log.error(' XX Error saving to Cosmos DB:', dbError);
+            context.log.error(' XX Error details:', {
                 code: dbError.code,
                 message: dbError.message,
                 body: dbError.body
@@ -103,8 +103,8 @@ module.exports = async function (context, req) {
             body: createdItem
         };
     } catch (error) {
-        context.log.error('Error creating suggestion:', error);
-        context.log.error('Stack trace:', error.stack);
+        context.log.error(' XX Error creating suggestion:', error);
+        context.log.error(' XX Stack trace:', error.stack);
         context.res = {
             status: 500,
             headers: {
