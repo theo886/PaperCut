@@ -1,9 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Edit, MessageCircle, Activity, GitMerge, Paperclip, MoreVertical, Trash, Lock, Pin } from 'lucide-react';
+import { 
+  ChevronLeft, MessageCircle, Check, X, Edit3, UserX, Paperclip, 
+  Award, Shield, GitMerge, Clock, ArrowRight, Trash, Heart, MoreVertical,
+  Edit, Activity, Lock, Pin
+} from 'lucide-react';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
-import MergeSuggestionModal from './MergeSuggestionModal';
-import FileUploader, { AttachmentList, Attachment } from './FileUploader';
 import apiService from '../services/apiService';
+import Attachment from './Attachment';
+import FileUploader from './FileUploader';
+import MergeSuggestionModal from './MergeSuggestionModal';
+
+// Add comment status indicator
+const EditedLabel = ({ timestamp }) => (
+  <span className="text-xs text-gray-400 italic ml-1">
+    (edited {formatRelativeTime(timestamp)})
+  </span>
+);
 
 const SuggestionDetail = ({ 
   suggestion, 
@@ -21,6 +33,10 @@ const SuggestionDetail = ({
   allSuggestions = [],
   onCommentDeleted
 }) => {
+  const [status, setStatus] = useState(suggestion.status);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusRef = useRef(null);
+  
   // Add state for menu visibility
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
@@ -51,6 +67,12 @@ const SuggestionDetail = ({
   const [commentAttachments, setCommentAttachments] = useState([]);
   const [activityExpanded, setActivityExpanded] = useState(false);
   
+  // New state for comment editing
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState('');
+  // State to track which comment has its menu open
+  const [activeCommentMenuId, setActiveCommentMenuId] = useState(null);
+  
   // Update scores when suggestion changes
   useEffect(() => {
     setEffortScore(suggestion.effortScore);
@@ -62,17 +84,18 @@ const SuggestionDetail = ({
     if (comment.trim()) {
       console.log('Submitting comment:', {
         suggestionId: suggestion.id,
-        commentText: comment,
+        text: comment,
         isAnonymous: commentAnonymously,
         attachments: commentAttachments
       });
-      onAddComment(comment, commentAnonymously, commentAttachments);
+      onAddComment(suggestion.id, comment, commentAnonymously, commentAttachments);
       setComment('');
       setCommentAttachments([]);
     }
   };
   
   const handleCommentFileUploaded = (fileInfo) => {
+    console.log('Comment file uploaded:', fileInfo);
     setCommentAttachments([...commentAttachments, fileInfo]);
   };
   
@@ -81,19 +104,18 @@ const SuggestionDetail = ({
   };
   
   const handleSaveScores = () => {
-    onUpdateScores(effortScore, impactScore);
+    onUpdateScores(suggestion.id, effortScore, impactScore);
     setEditingScores(false);
   };
   
   const handleMerge = async (targetId, sourceId) => {
-    if (isMerging) return;
-    
     try {
       setIsMerging(true);
       await onMergeSuggestions(targetId, sourceId);
       setMergeModalOpen(false);
     } catch (error) {
       console.error('Error merging suggestions:', error);
+      alert('Failed to merge suggestions. Please try again.');
     } finally {
       setIsMerging(false);
     }
@@ -102,8 +124,16 @@ const SuggestionDetail = ({
   const handleLikeComment = async (commentId) => {
     try {
       const updatedSuggestion = await apiService.likeComment(suggestion.id, commentId);
-      // Update the suggestion with the new data
-      onAddComment(updatedSuggestion);
+      // Don't use onAddComment for updating a suggestion after liking a comment
+      // Instead, notify the parent of the updated suggestion directly
+      if (typeof onCommentDeleted === 'function') {
+        // Reuse onCommentDeleted since it's intended for updating a suggestion
+        onCommentDeleted(updatedSuggestion);
+      } else {
+        // Fallback to using onAddComment but handle it as an update, not a new comment
+        // Create a custom event or object to indicate this is just an update
+        onAddComment(updatedSuggestion.id, null, false, [], true);
+      }
     } catch (error) {
       console.error('Error liking comment:', error);
       alert('Failed to like the comment. Please try again.');
@@ -131,15 +161,74 @@ const SuggestionDetail = ({
     }
   };
   
+  // New function to handle starting comment editing
+  const handleStartEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditedCommentText(comment.text);
+    setActiveCommentMenuId(null); // Close the menu when starting to edit
+  };
+  
+  // New function to handle comment edit cancellation
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditedCommentText('');
+  };
+  
+  // New function to handle comment edit submission
+  const handleSaveEditComment = async (commentId) => {
+    if (!editedCommentText.trim()) {
+      alert('Comment text cannot be empty.');
+      return;
+    }
+    
+    try {
+      const updatedSuggestion = await apiService.editComment(suggestion.id, commentId, editedCommentText);
+      console.log('Comment edited, updated suggestion:', updatedSuggestion);
+      
+      // Pass the updated suggestion to the parent component
+      if (typeof onCommentDeleted === 'function') {
+        onCommentDeleted(updatedSuggestion);
+      }
+      
+      // Reset editing state
+      setEditingCommentId(null);
+      setEditedCommentText('');
+    } catch (error) {
+      console.error('Error editing comment:', error);
+      alert('Failed to edit the comment. Please try again.');
+    }
+  };
+  
+  // Function to toggle comment menu
+  const toggleCommentMenu = (commentId) => {
+    setActiveCommentMenuId(activeCommentMenuId === commentId ? null : commentId);
+  };
+  
+  // Close any open comment menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeCommentMenuId && !event.target.closest('.comment-menu-container')) {
+        setActiveCommentMenuId(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeCommentMenuId]);
+
+  // Update the comment section render
   return (
     <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
+        {/* back button and header */}
         <div className="flex items-center mb-4">
           <button 
             onClick={onBack}
             className="text-gray-500 hover:text-gray-700 mr-2"
           >
-            ← Back
+            <ChevronLeft size={18} /> Back
           </button>
           <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
           
@@ -154,82 +243,66 @@ const SuggestionDetail = ({
             
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                {/* Delete option with permission check */}
-                <button
-                  onClick={() => {
-                    if (canDelete) {
-                      onDelete(suggestion.id);
-                      setShowMenu(false);
-                    }
-                  }}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    canDelete ? 'text-red-600 hover:bg-red-50' : 'text-gray-400 cursor-not-allowed'
-                  }`}
-                  disabled={!canDelete}
-                >
-                  <div className="flex items-center">
-                    <Trash size={16} className="mr-2" />
-                    Delete
-                  </div>
-                </button>
-                
-                {/* Merge option with permission check */}
-                <button
-                  onClick={() => {
-                    if (isAdmin) {
+                {/* Menu options */}
+                {isAdmin && (
+                  <button
+                    onClick={() => {
                       setMergeModalOpen(true);
                       setShowMenu(false);
-                    }
-                  }}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
-                  }`}
-                  disabled={!isAdmin}
-                  id="openMergeModalButton"
-                >
-                  <div className="flex items-center">
-                    <GitMerge size={16} className="mr-2" />
-                    Merge
-                  </div>
-                </button>
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <GitMerge size={16} className="mr-2" />
+                      Merge
+                    </div>
+                  </button>
+                )}
                 
-                {/* Lock option with permission check */}
-                <button
-                  onClick={() => {
-                    if (isAdmin) {
+                {isAdmin && (
+                  <button
+                    onClick={() => {
                       onLock(suggestion.id, !suggestion.isLocked);
                       setShowMenu(false);
-                    }
-                  }}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
-                  }`}
-                  disabled={!isAdmin}
-                >
-                  <div className="flex items-center">
-                    <Lock size={16} className="mr-2" />
-                    {suggestion.isLocked ? 'Unlock' : 'Lock'}
-                  </div>
-                </button>
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <Lock size={16} className="mr-2" />
+                      {suggestion.isLocked ? 'Unlock' : 'Lock'}
+                    </div>
+                  </button>
+                )}
                 
-                {/* Pin option with permission check */}
-                <button
-                  onClick={() => {
-                    if (isAdmin) {
+                {isAdmin && (
+                  <button
+                    onClick={() => {
                       onPin(suggestion.id, !suggestion.isPinned);
                       setShowMenu(false);
-                    }
-                  }}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    isAdmin ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'
-                  }`}
-                  disabled={!isAdmin}
-                >
-                  <div className="flex items-center">
-                    <Pin size={16} className="mr-2" />
-                    {suggestion.isPinned ? 'Unpin' : 'Pin'}
-                  </div>
-                </button>
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <Pin size={16} className="mr-2" />
+                      {suggestion.isPinned ? 'Unpin' : 'Pin'}
+                    </div>
+                  </button>
+                )}
+                
+                {canDelete && (
+                  <button
+                    onClick={() => {
+                      onDelete(suggestion.id);
+                      setShowMenu(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <div className="flex items-center">
+                      <Trash size={16} className="mr-2" />
+                      Delete
+                    </div>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -242,7 +315,7 @@ const SuggestionDetail = ({
               <select 
                 className="block w-32 p-2 border rounded-md text-sm"
                 value={suggestion.status}
-                onChange={(e) => onUpdateStatus(e.target.value)}
+                onChange={(e) => onUpdateStatus(suggestion.id, e.target.value)}
               >
                 <option value="New">New</option>
                 <option value="In Progress">In Progress</option>
@@ -390,6 +463,7 @@ const SuggestionDetail = ({
           )}
         </div>
         
+        {/* Comments section - now using the new format */}
         <div className="mt-8">
           <h3 className="font-medium mb-3 flex items-center">
             <MessageCircle size={18} className="mr-1" /> 
@@ -403,147 +477,188 @@ const SuggestionDetail = ({
                   {comment.authorInitial}
                 </div>
                 <div className="flex-grow">
-                  <div className="flex items-center flex-wrap">
-                    <span className="font-medium">{comment.author}</span>
-                    {comment.isAnonymous && <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded ml-2">Anonymous</span>}
-                    {comment.fromMerged && (
-                      <span className="text-xs bg-indigo-100 text-indigo-800 px-1 rounded ml-2 flex items-center">
-                        <GitMerge size={10} className="mr-1" /> From merged suggestion
-                      </span>
-                    )}
-                    {comment.isMergeDescription && (
-                      <span className="text-xs bg-indigo-200 text-indigo-800 px-1 rounded ml-2 flex items-center">
-                        <GitMerge size={10} className="mr-1" /> Merged suggestion description
-                      </span>
-                    )}
-                    <span className="text-gray-400 text-sm ml-2">{formatRelativeTime(comment.timestamp)}</span>
-                  </div>
-                  <p className={`mt-1 ${comment.isMergeDescription ? 'text-gray-800' : 'text-gray-700'}`}>
-                    {comment.text}
-                  </p>
-                  
-                  {/* Display comment attachments if any */}
-                  {comment.attachments && comment.attachments.length > 0 && (
-                    <div className="mt-2">
-                      {comment.attachments.map((attachment, idx) => (
-                        <Attachment key={idx} attachment={attachment} />
-                      ))}
+                  {/* Editing form - shown when editing */}
+                  {editingCommentId === comment.id ? (
+                    <div className="mb-2">
+                      <textarea 
+                        value={editedCommentText}
+                        onChange={(e) => setEditedCommentText(e.target.value)}
+                        className="w-full border rounded-md p-2 text-gray-700 focus:border-indigo-500 focus:outline-none"
+                        rows={3}
+                      />
+                      <div className="flex justify-end mt-2 space-x-2">
+                        <button 
+                          onClick={handleCancelEditComment}
+                          className="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => handleSaveEditComment(comment.id)}
+                          className="px-3 py-1 text-sm text-white bg-indigo-600 rounded hover:bg-indigo-700"
+                        >
+                          Save
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      {/* Comment text first */}
+                      <p className={`${comment.isMergeDescription ? 'text-gray-800' : 'text-gray-700'}`}>
+                        {comment.text}
+                        {comment.editedTimestamp && <EditedLabel timestamp={comment.editedTimestamp} />}
+                      </p>
+                      
+                      {/* Display comment attachments if any */}
+                      {comment.attachments && comment.attachments.length > 0 && (
+                        <div className="mt-2">
+                          {comment.attachments.map((attachment, idx) => (
+                            <Attachment key={idx} attachment={attachment} />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Comment metadata and actions in smaller grey font */}
+                      <div className="flex items-center mt-1 text-gray-500 text-sm">
+                        {/* Author name */}
+                        <span className="font-medium text-gray-500">
+                          {comment.author}
+                        </span>
+                        
+                        {/* Special badges */}
+                        {comment.isAnonymous && <span className="text-xs bg-amber-100 text-amber-800 px-1 rounded ml-1">Anonymous</span>}
+                        {comment.fromMerged && (
+                          <span className="text-xs bg-indigo-100 text-indigo-800 px-1 rounded ml-1 flex items-center">
+                            <GitMerge size={10} className="mr-1" /> Merged
+                          </span>
+                        )}
+                        
+                        {/* Timestamp */}
+                        <span className="ml-2">{formatRelativeTime(comment.timestamp)}</span>
+                        
+                        {/* Like button */}
+                        <button 
+                          onClick={() => handleLikeComment(comment.id)}
+                          className={`ml-3 flex items-center ${comment.likedBy && comment.likedBy.includes(currentUser?.id) ? 'text-red-500' : 'hover:text-red-500'}`}
+                          aria-label="Like comment"
+                        >
+                          <Heart size={14} fill={comment.likedBy && comment.likedBy.includes(currentUser?.id) ? "currentColor" : "none"} />
+                          <span className="ml-1">{comment.likes || 0}</span>
+                        </button>
+                        
+                        {/* Three dots menu */}
+                        <div className="relative ml-2 comment-menu-container">
+                          <button 
+                            onClick={() => toggleCommentMenu(comment.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                            aria-label="Comment actions"
+                          >
+                            <MoreVertical size={14} />
+                          </button>
+                          
+                          {/* Dropdown menu */}
+                          {activeCommentMenuId === comment.id && (
+                            <div className="absolute right-0 mt-1 w-32 bg-white border rounded-md shadow-md z-10">
+                              <ul className="py-1 text-xs">
+                                {/* Edit option - only show if current user is comment author or admin */}
+                                <li>
+                                  <button 
+                                    onClick={() => handleStartEditComment(comment)}
+                                    className={`w-full text-left px-3 py-1 ${(isAdmin || (currentUser && comment.authorId === currentUser.id)) ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'}`}
+                                    disabled={!(isAdmin || (currentUser && comment.authorId === currentUser.id))}
+                                  >
+                                    <span className="flex items-center">
+                                      <Edit3 size={12} className="mr-1" /> Edit
+                                    </span>
+                                  </button>
+                                </li>
+                                
+                                {/* Delete option - only show if current user is comment author or admin */}
+                                <li>
+                                  <button 
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className={`w-full text-left px-3 py-1 ${(isAdmin || (currentUser && comment.authorId === currentUser.id)) ? 'text-red-600 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'}`}
+                                    disabled={!(isAdmin || (currentUser && comment.authorId === currentUser.id))}
+                                  >
+                                    <span className="flex items-center">
+                                      <Trash size={12} className="mr-1" /> Delete
+                                    </span>
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
                   )}
-                  
-                  {/* Comment actions: like and delete */}
-                  <div className="flex items-center mt-2 text-gray-500 text-sm">
-                    {/* Like button */}
-                    <button 
-                      onClick={() => handleLikeComment(comment.id)}
-                      className={`flex items-center mr-4 ${comment.likedBy && comment.likedBy.includes(currentUser?.id) ? 'text-indigo-600' : 'hover:text-indigo-600'}`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill={comment.likedBy && comment.likedBy.includes(currentUser?.id) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                      </svg>
-                      <span>{comment.likes || 0}</span>
-                    </button>
-                    
-                    {/* Delete button - only show if current user is comment author or admin */}
-                    {(isAdmin || (currentUser && comment.authorId === currentUser.id)) && (
-                      <button 
-                        onClick={() => handleDeleteComment(comment.id)}
-                        className="flex items-center text-gray-500 hover:text-red-600"
-                        title="Delete comment"
-                      >
-                        <Trash size={14} className="mr-1" />
-                        <span>Delete</span>
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
             ))}
             
+            {/* Comment form */}
             <form onSubmit={handleSubmitComment} className="flex gap-3 mt-4">
               <div className={`h-8 w-8 min-w-8 ${commentAnonymously ? 'bg-gray-400' : 'bg-green-500'} rounded-full flex items-center justify-center text-white flex-shrink-0`}>
-                {commentAnonymously ? '?' : 'U'}
+                {commentAnonymously ? '?' : currentUser?.name?.[0] || 'U'}
               </div>
               <div className="flex-grow">
-                <textarea
-                  className={`w-full border rounded-md p-2 text-sm ${suggestion.isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                  rows="2"
-                  placeholder={suggestion.isLocked ? "Comments are disabled for this suggestion" : "Add a comment..."}
+                <textarea 
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
+                  placeholder={suggestion.isLocked ? "This suggestion is locked" : "Write a comment..."}
+                  className="w-full border rounded-md p-2 focus:border-indigo-500 focus:outline-none text-gray-700"
+                  rows={2}
                   disabled={suggestion.isLocked}
                 ></textarea>
-                  {/* Anonymous checkbox - commented out for now
-                <div className="flex items-center justify-between mt-2">
-                   <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                     <input 
-                       type="checkbox" 
-                       className="mr-2"
-                       checked={commentAnonymously}
-                       onChange={() => setCommentAnonymously(!commentAnonymously)}
-                       disabled={suggestion.isLocked}
-                     />
-                     Post anonymously
-                   </label>
-                </div>
-                  */}
                 <div className="flex items-center">
                   <label className={`cursor-pointer mr-2 ${suggestion.isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                    <Paperclip size={20} className="text-gray-500 hover:text-gray-700" />
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const files = e.target.files;
-                        if (files.length === 0) return;
-                        
-                        const file = files[0];
-                        
-                        // Validate file size (max 20MB)
-                        if (file.size > 20 * 1024 * 1024) {
-                          alert('File size exceeds the maximum limit of 20MB');
-                          return;
-                        }
-                        
-                        try {
-                          // Upload the file using the apiService
-                          const result = await apiService.uploadFile(file);
-                          
-                          // Add the uploaded file to comment attachments
-                          handleCommentFileUploaded(result);
-                          
-                          // Reset the input
-                          e.target.value = null;
-                        } catch (error) {
-                          alert(error.message || 'Error uploading file');
-                          console.error('Error uploading file:', error);
-                        }
-                      }}
+                    <FileUploader onFileUploaded={handleCommentFileUploaded} disabled={suggestion.isLocked}>
+                      <div className="flex items-center text-sm text-gray-500 mt-1 hover:text-gray-700">
+                        <Paperclip size={14} className="mr-1" />
+                        <span>Attach</span>
+                      </div>
+                    </FileUploader>
+                  </label>
+                  
+                  <label className={`cursor-pointer flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-500 hover:text-gray-700'}`}>
+                    <input 
+                      type="checkbox" 
+                      className="mr-1"
+                      checked={commentAnonymously}
+                      onChange={() => setCommentAnonymously(!commentAnonymously)}
                       disabled={suggestion.isLocked}
                     />
+                    <UserX size={14} className="mr-1" /> 
+                    <span>Anonymous</span>
                   </label>
-                  <button
-                    type="submit"
-                    className={`${suggestion.isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600'} text-white px-3 py-1 rounded-md text-sm`}
-                    disabled={!comment.trim() || suggestion.isLocked}
+                  
+                  <div className="flex-grow"></div>
+                  
+                  <button 
+                    type="submit" 
+                    className={`px-4 py-1 rounded-md text-sm ${suggestion.isLocked || !comment.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                    disabled={suggestion.isLocked || !comment.trim()}
                   >
                     Comment
                   </button>
                 </div>
                 
-                {!suggestion.isLocked && (
-                  <>
-                    <AttachmentList 
-                      attachments={commentAttachments}
-                      onRemove={handleRemoveCommentAttachment}
-                    />
-                  </>
-                )}
-                
-                {suggestion.isLocked && (
-                  <div className="mt-2 text-sm text-red-600 flex items-center">
-                    <Lock size={14} className="mr-1" />
-                    This suggestion is locked and cannot receive new comments
+                {/* Display comment attachments */}
+                {commentAttachments.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {commentAttachments.map((attachment, index) => (
+                      <div key={index} className="flex items-center bg-gray-50 p-1 rounded">
+                        <Paperclip size={14} className="mr-1 text-gray-500" />
+                        <span className="text-sm text-gray-700 truncate flex-grow">{attachment.name}</span>
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveCommentAttachment(index)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -629,7 +744,7 @@ const SuggestionDetail = ({
           
           {!activityExpanded && (
             <div className="text-sm text-gray-500">
-              Activity history is collapsed. Click 'Expand' to view.
+              Activity history is collapsed. Click '+' to view.
             </div>
           )}
         </div>

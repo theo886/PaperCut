@@ -344,6 +344,53 @@ const apiService = {
     }
   },
   
+  // Edit a comment
+  editComment: async (suggestionId, commentId, text) => {
+    try {
+      console.log(`Editing comment ${commentId} for suggestion ${suggestionId} with text:`, text);
+      
+      const response = await fetch(`/api/suggestions/${suggestionId}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response from editComment API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        
+        // Try to parse as JSON if possible
+        let errorJson;
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch (e) {
+          // Not JSON, use as is
+        }
+        
+        const error = new Error(
+          errorJson?.message || 
+          `API error (${response.status}): ${response.statusText}`
+        );
+        error.response = response;
+        error.data = errorJson;
+        throw error;
+      }
+      
+      const data = await response.json();
+      console.log('Successful response from editComment API:', data);
+      return data;
+    } catch (error) {
+      console.error(`Error editing comment ${commentId}:`, error);
+      throw error;
+    }
+  },
+  
   // Like a comment
   likeComment: async (suggestionId, commentId) => {
     try {
