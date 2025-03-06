@@ -6,10 +6,13 @@ module.exports = async function (context, req) {
     console.log(`MERGEPIN: Merge suggestions request received`);
     console.log(`MERGEPIN: Request headers:`, JSON.stringify(req.headers, null, 2));
     console.log(`MERGEPIN: Request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`MERGEPIN: Route params:`, JSON.stringify(context.bindingData, null, 2));
     
     try {
-        // Extract the target and source IDs
-        const { targetId, sourceId } = req.body;
+        // Extract the target ID from route parameters and source ID from body
+        const targetId = context.bindingData.targetId;
+        const { sourceId } = req.body;
+        
         console.log(`MERGEPIN: Attempting to merge source ID ${sourceId} into target ID ${targetId}`);
         
         if (!targetId || !sourceId) {
