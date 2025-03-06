@@ -241,7 +241,7 @@ const SuggestionDetail = ({
           >
             <ChevronLeft size={18} /> Back
           </button>
-          <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
+          
           
           {/* 3-dot menu */}
           <div className="relative" ref={menuRef}>
@@ -321,6 +321,9 @@ const SuggestionDetail = ({
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div>
+            <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
+          </div>
+          <div>
             <h4 className="text-sm text-gray-500 mb-1">Status</h4>
             {isAdmin ? (
               <select 
@@ -368,7 +371,7 @@ const SuggestionDetail = ({
           </div>
           
           <div>
-            <h4 className="text-sm text-gray-500 mb-1">submitted by</h4>
+            <h4 className="text-sm text-gray-500 mb-1">Submitted by</h4>
             <div className="flex items-center">
               <div className={`h-6 w-6 min-w-6 ${suggestion.isAnonymous ? 'bg-gray-400' : 'bg-purple-500'} rounded-full flex items-center justify-center text-white mr-2 text-xs`}>
                 {suggestion.authorInitial}
