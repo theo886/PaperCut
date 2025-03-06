@@ -610,7 +610,7 @@ const SuggestionDetail = ({
                   rows={2}
                   disabled={suggestion.isLocked}
                 ></textarea>
-                <  {/* Anonymous checkbox - commented out for now
+                  {/* Anonymous checkbox - commented out for now
                 <div className="flex items-center justify-between mt-2">
                    <label className={`flex items-center text-sm ${suggestion.isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
                      <input 
