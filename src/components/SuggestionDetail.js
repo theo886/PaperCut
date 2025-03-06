@@ -543,7 +543,7 @@ const SuggestionDetail = ({
                           aria-label="Like comment"
                         >
                           <Heart size={14} fill={comment.likedBy && comment.likedBy.includes(currentUser?.id) ? "currentColor" : "none"} />
-                          <span className="ml-1">{comment.likes || 0}</span>
+                          <span className="ml-1">{comment.likes || ''}</span>
                         </button>
                         
                         {/* Three dots menu */}
