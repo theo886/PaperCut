@@ -233,19 +233,17 @@ const SuggestionDetail = ({
   return (
     <div className="max-w-xl mx-auto mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
-        {/* back button and header */}
-        <div className="flex items-center mb-4">
+        {/* back button */}
+        <div className="flex items-center mb-2">
           <button 
             onClick={onBack}
             className="text-gray-500 hover:text-gray-700 mr-2"
           >
             <ChevronLeft size={18} /> Back
           </button>
-          <h2 className="text-xl font-medium flex-grow">{suggestion.title}</h2>
-          
           
           {/* 3-dot menu */}
-          <div className="relative" ref={menuRef}>
+          <div className="relative ml-auto" ref={menuRef}>
             <button 
               onClick={() => setShowMenu(!showMenu)}
               className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
@@ -319,6 +317,9 @@ const SuggestionDetail = ({
             )}
           </div>
         </div>
+        
+        {/* Suggestion title */}
+        <h2 className="text-xl font-medium mb-4">{suggestion.title}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           
