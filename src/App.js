@@ -259,6 +259,8 @@ function AppContent() {
       if (selectedSuggestion && selectedSuggestion.id === id) {
         setSelectedSuggestion(updatedSuggestion);
       }
+      
+      console.log(`MERGEPIN Client: Successfully updated status to: ${status}`);
     } catch (error) {
       console.error(`Error updating status for suggestion ${id}:`, error);
       alert('Failed to update suggestion status. Please try again later.');

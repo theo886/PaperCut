@@ -2,10 +2,15 @@ const { getContainer } = require('../shared/cosmosClient');
 const { authenticate } = require('../shared/authMiddleware');
 
 module.exports = async function (context, req) {
+    console.log(`MERGEPIN: Update suggestion request received for ID: ${context.bindingData.id}`);
+    console.log(`MERGEPIN: Request headers:`, JSON.stringify(req.headers, null, 2));
+    console.log(`MERGEPIN: Request body:`, JSON.stringify(req.body, null, 2));
+    
     try {
         const id = context.bindingData.id;
         
         if (!id) {
+            console.log(`MERGEPIN: Error - Missing suggestion ID`);
             context.res = {
                 status: 400,
                 body: { message: "ID parameter is required" }
@@ -17,8 +22,9 @@ module.exports = async function (context, req) {
         let userData;
         try {
             userData = authenticate(req);
-            context.log('User authenticated:', userData);
+            console.log('MERGEPIN: User authenticated:', JSON.stringify(userData, null, 2));
         } catch (error) {
+            console.log(`MERGEPIN: Authentication error:`, error.message);
             context.res = {
                 status: error.status || 401,
                 body: { message: error.message || "Authentication required" }
@@ -37,17 +43,17 @@ module.exports = async function (context, req) {
         // User is admin if either condition is true
         const isAdmin = isAdminFromRoles || isAdminFromHeader;
         
-        context.log('Admin check in updateSuggestion:', { 
-            userRoles: userData.userRoles,
-            isAdminFromRoles,
-            isAdminFromHeader, 
-            adminHeader: req.headers['x-admin-status'], 
-            finalAdminStatus: isAdmin 
-        });
+        console.log(`MERGEPIN: Admin check details for status update:`);
+        console.log(`MERGEPIN: - isAdminFromRoles: ${isAdminFromRoles}`);
+        console.log(`MERGEPIN: - User roles:`, JSON.stringify(userData.userRoles, null, 2));
+        console.log(`MERGEPIN: - isAdminFromHeader: ${isAdminFromHeader}`);
+        console.log(`MERGEPIN: - x-admin-status header:`, req.headers['x-admin-status']);
+        console.log(`MERGEPIN: - Final isAdmin result: ${isAdmin}`);
         
         const container = await getContainer();
         
         // Get the existing suggestion
+        console.log(`MERGEPIN: Querying for suggestion with ID: ${id}`);
         const querySpec = {
             query: "SELECT * FROM c WHERE c.id = @id",
             parameters: [
@@ -61,6 +67,7 @@ module.exports = async function (context, req) {
         const { resources } = await container.items.query(querySpec).fetchAll();
         
         if (resources.length === 0) {
+            console.log(`MERGEPIN: Error - Suggestion with ID ${id} not found`);
             context.res = {
                 status: 404,
                 body: { message: `Suggestion with id ${id} not found` }
@@ -69,9 +76,11 @@ module.exports = async function (context, req) {
         }
         
         const existingSuggestion = resources[0];
+        console.log(`MERGEPIN: Found suggestion: ${existingSuggestion.title}, Current status: ${existingSuggestion.status}`);
         
         // Check if user has permission to update this suggestion
         if (!isAdmin && existingSuggestion.authorId !== userData.userId) {
+            console.log(`MERGEPIN: Error - User doesn't have permission to update this suggestion`);
             context.res = {
                 status: 403,
                 body: { message: "You don't have permission to update this suggestion" }
@@ -80,13 +89,14 @@ module.exports = async function (context, req) {
         }
         
         const updatedData = { ...req.body };
+        console.log(`MERGEPIN: Update data received:`, JSON.stringify(updatedData, null, 2));
         
         // Merge updated fields with existing suggestion
         // If user is not admin, only certain fields can be updated
         const updatedSuggestion = { ...existingSuggestion };
 
         // Get user's display name - use fullName if available, otherwise fallback to userDetails
-        const displayName = userData.userDetails| "NameMissing";
+        const displayName = userData.userDetails|| "NameMissing";
         // Get user's initial - prefer first name initial if available
         const userInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 
                           displayName.charAt(0).toUpperCase();
@@ -94,6 +104,7 @@ module.exports = async function (context, req) {
         if (isAdmin) {
             // Admins can update all fields
             if (updatedData.status && updatedData.status !== existingSuggestion.status) {
+                console.log(`MERGEPIN: Updating status from ${existingSuggestion.status} to ${updatedData.status}`);
                 // Add activity record for status change
                 const statusActivity = {
                     id: (existingSuggestion.activity.length + 1).toString(),
@@ -149,13 +160,16 @@ module.exports = async function (context, req) {
             body: updatedItem
         };
     } catch (error) {
-        context.log.error(`Error updating suggestion with id ${context.bindingData.id}:`, error);
+        console.log(`MERGEPIN: Error updating suggestion:`, error.message);
+        console.log(`MERGEPIN: Full error:`, error);
+        
         context.res = {
             status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: { message: 'Error updating suggestion', error: error.message }
+            body: { 
+                message: "Error updating suggestion",
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            }
         };
     }
 };

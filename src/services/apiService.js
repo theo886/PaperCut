@@ -152,7 +152,7 @@ const apiService = {
       });
       return handleResponse(response);
     } catch (error) {
-      console.error(`Error updating suggestion ${id}:`, error);
+      console.error(`MERGEPIN Client: Error updating suggestion ${id}:`, error);
       throw error;
     }
   },
